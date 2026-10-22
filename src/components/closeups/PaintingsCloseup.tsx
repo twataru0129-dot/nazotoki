@@ -2,6 +2,7 @@ import { assetUrl } from '../../game/assets';
 import type { PaintingId } from '../../game/logic';
 import { cardRevealed } from '../../game/state';
 import { useGame } from '../../game/store';
+import { useFreshFx, useFreshFxSuffix } from '../../game/useFreshFx';
 import { CardFront } from '../art/CardFace';
 import { Examine } from '../Examine';
 
@@ -9,8 +10,8 @@ import { Examine } from '../Examine';
 export function PaintingsCloseup() {
   const { state, dispatch } = useGame();
   const { solved, frameOpen } = state.progress.paintings;
-  const wrong = state.fx?.key.startsWith('painting-wrong-') ? state.fx.key.slice(-1) : null;
-  const animate = state.fx?.key === 'painting-solved';
+  const wrong = useFreshFxSuffix('painting-wrong-');
+  const animate = useFreshFx('painting-solved', 'paintings');
 
   return (
     <>

@@ -204,6 +204,8 @@ test('5・10 全カード取得から扉の解錠・先へ進むまで通しで�
   await page.getByRole('button', { name: 'つづきから' }).click();
   await face(page, 'south');
   await page.getByRole('button', { name: '先へ進む' }).click();
+  await expect(page.getByTestId('door-transition')).toBeVisible(); // 扉の演出（第4段階）
+  await page.getByRole('button', { name: 'スキップ' }).click();
   await expect(page.getByText('扉の向こうには、暗い通路が続いている。')).toBeVisible();
   await page.getByRole('button', { name: '書斎に戻る' }).click();
   await expect(page.getByTestId('stage')).toHaveAttribute('data-facing', 'south');

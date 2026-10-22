@@ -2,6 +2,7 @@ import { useRef, useState, type PointerEvent } from 'react';
 import { CLOCK_SOLUTION, normalizeClock } from '../../game/logic';
 import { cardRevealed } from '../../game/state';
 import { useGame } from '../../game/store';
+import { useFreshFx } from '../../game/useFreshFx';
 import { CardFront } from '../art/CardFace';
 import { ClockFace, formatTime } from '../art/ClockFace';
 
@@ -13,7 +14,8 @@ export function ClockCloseup() {
   // ドラッグ中は手元だけで針を動かし、指を離した時刻で判定する（途中で00:14を通過しても解けない）
   const [preview, setPreview] = useState<number | null>(null);
   const shown = preview ?? minutes;
-  const animate = state.fx?.key === 'clock-solved';
+  const animate = useFreshFx('clock-solved', 'clock');
+  const returning = useFreshFx('card-take-D', 'clock-hands');
 
   // 分針のドラッグ：指の角度から「分」を求め、前回との差（±30分以内に丸める）だけ進める
   const angleMinute = (e: PointerEvent) => {
@@ -50,7 +52,7 @@ export function ClockCloseup() {
           onPointerUp={onUp}
           onPointerCancel={() => setPreview(null)}
         >
-          <ClockFace minutes={shown} className="clock-big" transitionMs={preview !== null ? 0 : state.fx?.key === 'card-take-D' ? 1400 : 200} />
+          <ClockFace minutes={shown} className="clock-big" transitionMs={preview !== null ? 0 : returning ? 1400 : 200} />
         </div>
         <div className="clock-controls">
           <button type="button" className="round-btn" onClick={() => dispatch({ type: 'adjustClock', delta: -1 })} disabled={solved} aria-label="針を1分戻す">

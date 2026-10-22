@@ -1,6 +1,7 @@
 import { DRAWERS, type DrawerId } from '../../game/logic';
 import { cardRevealed } from '../../game/state';
 import { useGame } from '../../game/store';
+import { useFreshFx, useFreshFxSuffix } from '../../game/useFreshFx';
 import { DRAWER_LABELS } from '../../game/text';
 import { CardFront } from '../art/CardFace';
 import { KeyIcon } from '../art/KeyIcon';
@@ -29,13 +30,15 @@ export function DeskCloseup() {
   const { state, dispatch } = useGame();
   const p = state.progress;
   const { rightOpen, key, boxOpen } = p.desk;
-  const shake = state.fx?.key.startsWith('drawer-locked-') ? state.fx.key.slice('drawer-locked-'.length) : null;
+  const shake = useFreshFxSuffix('drawer-locked-');
+  const drawerAnim = useFreshFx('drawer-open', 'desk-drawer');
+  const boxAnim = useFreshFx('box-open', 'desk-box');
   const keySelected = state.selected?.kind === 'key';
 
   return (
     <>
       <div className="desk">
-        <div className={`desk-box${boxOpen ? ' is-open' : ''}${keySelected ? ' is-target' : ''}`}>
+        <div className={`desk-box${boxOpen ? ' is-open' : ''}${keySelected ? ' is-target' : ''}${boxAnim ? ' animate-box' : ''}`}>
           <button
             type="button"
             className="box-btn"
@@ -64,7 +67,7 @@ export function DeskCloseup() {
           {DRAWERS.map((d) => {
             const open = d === 'right' && rightOpen;
             return (
-              <li key={d} className={`drawer${open ? ' is-open' : ''}`}>
+              <li key={d} className={`drawer${open ? ' is-open' : ''}${open && drawerAnim ? ' animate-drawer' : ''}`}>
                 <button
                   type="button"
                   className={`drawer-front${shake === d ? ' shake' : ''}`}

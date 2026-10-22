@@ -1,6 +1,7 @@
 import { EndingScreen } from './components/EndingScreen';
 import { ExploreScreen } from './components/ExploreScreen';
 import { OpeningScreen } from './components/OpeningScreen';
+import { CardToast } from './components/CardToast';
 import { OverlayHost } from './components/OverlayHost';
 import { TitleScreen } from './components/TitleScreen';
 import { useGame } from './game/store';
@@ -17,6 +18,7 @@ export function App() {
         {state.screen === 'ending' && <EndingScreen />}
       </div>
       <OverlayHost />
+      {state.screen === 'explore' && <CardToast />}
       {/* 4枚目の記録がそろった瞬間の「静寂」（画面を一瞬暗くする。音を出さない設定でも分かるように） */}
       {state.fx?.key.split('|').includes('silence') && <div key={state.fx.n} className="silence-veil" aria-hidden="true" />}
       {state.screen === 'explore' && saveFailed && (

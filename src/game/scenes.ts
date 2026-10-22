@@ -5,11 +5,12 @@ export const SCENES: Record<Facing, SceneDef> = {
   north: {
     facing: 'north',
     image: 'bg/a_north.webp',
-    provisional: '本棚の4冊が背景に描き込まれたまま／机上の写真が未配置',
+    provisional: '左端（西壁の北寄り）の絵と飾り棚が、西面の画像には写っていない（壁の継ぎ目の整合が未完）',
     hotspots: [
       { id: 'bookshelf', label: '本棚', rect: { x: 570, y: 190, w: 310, h: 145 }, action: { type: 'closeup', id: 'bookshelf' } },
       { id: 'desk', label: '机の引き出し', rect: { x: 240, y: 695, w: 990, h: 95 }, action: { type: 'closeup', id: 'desk' } },
       { id: 'box', label: '机上の小箱', rect: { x: 985, y: 590, w: 110, h: 85 }, action: { type: 'closeup', id: 'desk' } },
+      { id: 'photo', label: '机上の写真', rect: { x: 690, y: 612, w: 56, h: 50 }, action: { type: 'closeup', id: 'desk' } },
       {
         id: 'lamp',
         label: '机のランプ',
@@ -53,6 +54,14 @@ export const SCENES: Record<Facing, SceneDef> = {
   },
 };
 
+/** 北の壁に重ねる物（背景の空き棚・机上） */
+export const DECOR = {
+  /** 中段の空き棚（元画像の4冊があった場所） */
+  northBooks: { x: 676, y: 228, w: 115, h: 88 },
+  /** 机の上の写真立て（緑の革の上、ペン立ての左） */
+  deskPhoto: { x: 692, y: 614, w: 52, h: 46 },
+} as const;
+
 /** 背景上に重ねる、謎の正確な表示（生成画像の描き込みを覆う） */
 export const OVERLAYS = {
   /** 東：柱時計の文字盤（中心 466,256） */
@@ -66,4 +75,6 @@ export const OVERLAYS = {
   },
   /** 南：扉の解錠装置 */
   doorDevice: { x: 595, y: 330, w: 410, h: 187 },
+  /** 南（開扉）：開いた扉板の上の装置 */
+  doorDeviceOpen: { x: 736, y: 350, w: 268, h: 150 },
 } as const;

@@ -143,7 +143,8 @@ test('プレイ時間：表示中だけ数え、扉の解錠でクリア時間�
   const clear = (await saved(page)).progress.clearSeconds;
   expect(clear).toBeGreaterThanOrEqual(65);
   await page.clock.runFor(20_000);
-  await back(page);
+  // 解錠演出の最後に、拡大画面は自動で閉じて探索画面へ戻る（第4段階）
+  await expect(page.locator('.closeup')).toHaveCount(0);
   await notebook(page);
   const shown = await page.getByTestId('clear-time').innerText();
   await page.clock.runFor(15_000);

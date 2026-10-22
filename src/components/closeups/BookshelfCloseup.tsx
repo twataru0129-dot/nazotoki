@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { BOOKS, SYMBOL_NAME, type BookId } from '../../game/logic';
 import { cardRevealed } from '../../game/state';
 import { useGame } from '../../game/store';
+import { useFreshFx } from '../../game/useFreshFx';
 import { BookArt } from '../art/BookArt';
 import { CardFront } from '../art/CardFace';
 import { Examine } from '../Examine';
@@ -32,7 +33,7 @@ export function BookshelfCloseup() {
   const { state, dispatch } = useGame();
   const books = state.progress.books;
   const [picked, setPicked] = useState<number | null>(null);
-  const animate = state.fx?.key === 'books-solved';
+  const animate = useFreshFx('books-solved', 'bookshelf');
 
   const onDrop = useCallback(
     (from: number, drop: string | null) => {

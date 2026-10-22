@@ -283,10 +283,13 @@ async function writeBackground(name, img, note) {
   }
 }
 
-// 北：本棚＋机。本の描き込み・机上写真なしは仮のまま（第4段階で補修）
+// 北：本棚＋机。中段の4冊（緑・黒・白・青）を消して空き棚にし、ゲーム側で操作用の4冊（SVG）を置く。
+// 書斎Bも同じ画像を使い、赤い本・写真の違いはゲーム側で重ねる（A/Bを同じ構図にするため）。
 {
   const img = await load(`${P13}/backgrounds/study_A_north_concept.png`);
-  await writeBackground('a_north', img, '仮：中段の4冊が描き込み済み、机上写真なし');
+  // 本の上に見えている棚の奥（暗い板）を縦に伸ばして、本のあった場所を埋める
+  stretchCopy(img, { x0: 673, y0: 204, x1: 793, y1: 221 }, { x0: 673, y0: 221, x1: 793, y1: 317 });
+  await writeBackground('a_north', img, '加工：中段の4冊を消して空き棚に（本と机上の写真はゲーム側でSVG表示）');
 }
 
 // 東：時計＋窓。窓の外を敷地の夜景に差し替え。時計の針はゲーム側でSVGを重ねて隠す
@@ -320,6 +323,41 @@ async function writeBackground(name, img, note) {
 
   await writeBackground('a_south_closed', closed, '仮：閉扉は開扉画像の扉板を射影変換。左右の壁は塗り替え・減光の仮処置');
   await writeBackground('a_south_open', base, '仮：開扉（閉扉と同じベース）');
+
+  // 扉の演出用：戸枠ごとの扉（暗闇に浮かぶ扉）と、開く扉板だけを、閉扉と同じ画像から切り出す
+  const crop = async (name, img, r, note) => {
+    const buf = await sharp(img.data, { raw: { width: img.w, height: img.h, channels: 4 } })
+      .extract({ left: r.x, top: r.y, width: r.w, height: r.h })
+      .removeAlpha()
+      .webp({ quality: 92, smartSubsample: true, effort: 6 })
+      .toBuffer();
+    await out(`fx/${name}.webp`, buf);
+    report.push({ file: `fx/${name}.webp`, quality: 'q92', psnr: '-', bytes: buf.length, note });
+  };
+  await crop('door_leaf', closed, { x: 560, y: 108, w: 460, h: 738 }, '閉扉の扉板だけの切り出し（開く部品）');
+  // 扉板の部分を透明にした戸枠（扉が開くと奥の通路が見える）
+  {
+    const r = { x: 470, y: 20, w: 640, h: 860 };
+    const raw = Buffer.alloc(r.w * r.h * 4);
+    for (let y = 0; y < r.h; y++) {
+      for (let x = 0; x < r.w; x++) {
+        const sx = r.x + x;
+        const sy = r.y + y;
+        const o = (y * r.w + x) * 4;
+        closed.data.copy(raw, o, idx(closed, sx, sy), idx(closed, sx, sy) + 4);
+        if (sx >= 560 && sx < 1020 && sy >= 108 && sy < 846) raw[o + 3] = 0;
+      }
+    }
+    const buf = await sharp(raw, { raw: { width: r.w, height: r.h, channels: 4 } }).webp({ quality: 92, alphaQuality: 100, effort: 6 }).toBuffer();
+    await out('fx/door_frame_hole.webp', buf);
+    report.push({ file: 'fx/door_frame_hole.webp', quality: 'q92', psnr: '-', bytes: buf.length, note: '戸枠（扉板の部分は透明）' });
+  }
+}
+
+// 通路（扉の先）。扉の演出で扉板の奥に見せる
+{
+  const img = await load(`${EXTRA}/暗い回廊参考.png`);
+  await writeBackground('hallway', img, '暗い通路（扉の演出・第5段階のエンディングで使用）');
 }
 
 // 西：絵画4枚。北壁側（右端）の窓とカーテンを壁と腰板に塗り替える。額内はゲーム側でSVGを重ねる

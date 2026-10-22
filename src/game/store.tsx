@@ -90,12 +90,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   // 画面に応じた BGM・環境音（音声の有効化はユーザー操作時に audio.unlock() で行う）
   useEffect(() => {
+    // 洋館のきしみは探索中だけ、不規則に鳴らす
+    audio.setOldHouse(state.screen === 'explore');
     if (state.screen === 'explore') {
       audio.setBgm('study');
       audio.setAmbient('rain_loop', state.closeup === 'window' ? 1.6 : 1);
     } else if (state.screen === 'ending') {
-      audio.setBgm(null);
-      audio.setAmbient(null);
+      // 扉の演出と演出曲は EndingScreen 側で制御する
     } else {
       audio.setBgm('title');
       audio.setAmbient(null);

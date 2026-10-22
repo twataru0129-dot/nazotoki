@@ -1,7 +1,8 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { CARDS, type CardId } from '../../game/logic';
 import { doorSlots, heldCount } from '../../game/state';
 import { useGame } from '../../game/store';
+import { useFreshFx } from '../../game/useFreshFx';
 import { formatTime } from '../art/ClockFace';
 import { CardBack, CardFront } from '../art/CardFace';
 import { InventoryBar } from '../InventoryBar';
@@ -17,7 +18,7 @@ export function DoorCloseup() {
   const slots = doorSlots(p);
   const { unlocked, dialMinute } = p.door;
   const sel = state.selected;
-  const animate = state.fx?.key === 'door-solved';
+  const animate = useFreshFx('door-solved', 'door-closeup');
 
   const onDrop = useCallback(
     (src: DragSrc, drop: string | null) => {
@@ -27,6 +28,15 @@ export function DoorCloseup() {
     [dispatch],
   );
   const { bind, ghost } = useDrag<DragSrc>(onDrop);
+
+  // 解錠演出（約7秒）：装置作動 0〜1.5秒 → カード反転 1.5〜3秒 → 図面がつながる 3〜4秒 → 解錠音 3.8秒
+  // → 5.2秒で探索画面へ戻り、扉が開く（1.8秒）。動きを減らす設定では短くする。
+  useEffect(() => {
+    if (!animate) return;
+    const reduce = document.documentElement.dataset.reducedMotion === 'true';
+    const id = window.setTimeout(() => dispatch({ type: 'closeCloseup' }), reduce ? 1500 : 5200);
+    return () => window.clearTimeout(id);
+  }, [animate, dispatch]);
 
   const tapSlot = (i: number) => {
     if (unlocked) return;
@@ -75,6 +85,7 @@ export function DoorCloseup() {
           ))}
         </ol>
         {unlocked && <p className="map-caption">書斎A ― 通路 ― もう一つの部屋</p>}
+        {unlocked && <p className="lock-released">錠が外れた</p>}
       </div>
 
       {ghost && (

@@ -6,7 +6,9 @@ import { BOOKS, type BookId, type BookSymbol } from '../../game/logic';
 // 古い革の質感と、金箔押し（凹みの影＋金のグラデーション）を加えている。
 // 左右の記号は logic.ts の BOOKS から決まるため、並べ替えても本と記号の対応はずれない。
 
-const LEATHER: Record<BookId, { base: string; dark: string }> = {
+const LEATHER: Record<BookId | 'red', { base: string; dark: string }> = {
+  // 書斎Bにだけある赤い本（謎の本ではないため記号を持たない）
+  red: { base: '#7a1f1c', dark: '#3a0d0c' },
   blue: { base: '#1C3C74', dark: '#0d1d3a' },
   ivory: { base: '#E4D5AF', dark: '#a8956a' },
   black: { base: '#252526', dark: '#0b0b0c' },
@@ -47,10 +49,10 @@ function SymbolShape({ s }: { s: BookSymbol }) {
   }
 }
 
-export function BookArt({ id, className }: { id: BookId; className?: string }) {
+export function BookArt({ id, className, stretch = false }: { id: BookId | 'red'; className?: string; stretch?: boolean }) {
   const uid = useId().replace(/:/g, '');
   const { base, dark } = LEATHER[id];
-  const { left, right } = BOOKS[id];
+  const sym = id === 'red' ? null : BOOKS[id];
   const light = id === 'ivory';
   const gold = `url(#gold-${uid})`;
   // 枠・帯は単色の金（明るい革では濃い金）
@@ -70,7 +72,7 @@ export function BookArt({ id, className }: { id: BookId; className?: string }) {
   );
 
   return (
-    <svg className={className} viewBox="0 0 156 420" aria-hidden="true" data-book-art={id}>
+    <svg className={className} viewBox="0 0 156 420" aria-hidden="true" data-book-art={id} preserveAspectRatio={stretch ? 'none' : undefined}>
       <defs>
         <linearGradient id={`leather-${uid}`} x1="0" x2="1">
           <stop offset="0" stopColor={dark} />
@@ -102,8 +104,8 @@ export function BookArt({ id, className }: { id: BookId; className?: string }) {
       <rect x="13" y="12" width="130" height="396" rx="9" fill="none" stroke={trim} strokeWidth="2" opacity=".85" />
       <path d="M17 95 H139 M17 111 H139 M17 293 H139 M17 309 H139" stroke={trim} strokeWidth="4" />
       <path d="M78 150 V264" stroke={trim} strokeWidth="1.8" opacity=".8" />
-      {stamp(left, 42, 'left')}
-      {stamp(right, 114, 'right')}
+      {sym && stamp(sym.left, 42, 'left')}
+      {sym && stamp(sym.right, 114, 'right')}
       <path d="M58 36 L78 20 L98 36 L78 52 Z M58 382 L78 365 L98 382 L78 397 Z" fill="none" stroke={trim} strokeWidth="2" />
     </svg>
   );

@@ -6,6 +6,8 @@ import { useGame } from '../game/store';
 import { FACING_LABEL, type Hotspot, type Rect } from '../game/types';
 import { ClockFace } from './art/ClockFace';
 import { DoorDevice } from './art/DoorDevice';
+import { NorthDecor } from './SceneDecor';
+import { DoorOpening } from './DoorOpening';
 
 const SWIPE_MIN = 48;
 
@@ -32,7 +34,7 @@ export function SceneStage({ highlight }: { highlight: boolean }) {
   // 南：解錠後は開扉の画像（閉扉と同じベースから作ったもの）に切り替える。開く演出は第5段階
   const southOpen = state.facing === 'south' && p.door.unlocked;
   const image = southOpen ? 'bg/a_south_open.webp' : scene.image;
-  const provisional = southOpen ? '開扉の画像は元画像のまま（扉上の装置の描き込みが謎用の装置と異なる）／開く演出は第5段階' : scene.provisional;
+  const provisional = southOpen ? '開いた扉は元画像（左右の壁の整合は閉扉と同じく仮処置）' : scene.provisional;
   const start = useRef<{ x: number; y: number; id: number } | null>(null);
   const swiped = useRef(false);
   const [dragDx, setDragDx] = useState(0);
@@ -98,6 +100,7 @@ export function SceneStage({ highlight }: { highlight: boolean }) {
             alt={`書斎A・${FACING_LABEL[state.facing]}の壁`}
             draggable={false}
           />
+          {state.facing === 'north' && <NorthDecor room="A" order={p.books.order} />}
           {state.facing === 'east' && (
             <div className="stage-overlay" style={place(OVERLAYS.clockFace)}>
               <ClockFace minutes={p.clock.minutes} className="fill" />
@@ -118,6 +121,13 @@ export function SceneStage({ highlight }: { highlight: boolean }) {
               <DoorDevice dialMinutes={p.door.dialMinute} className="fill" />
             </div>
           )}
+          {southOpen && (
+            <div className="stage-overlay device-plate" style={place(OVERLAYS.doorDeviceOpen)}>
+              <DoorDevice dialMinutes={p.door.dialMinute} filled className="fill" stretch />
+            </div>
+          )}
+          {/* 解錠の直後だけ：閉じた扉が開いた扉へ移る（同じベース画像なので扉だけが動いて見える） */}
+          {southOpen && !state.closeup && <DoorOpening />}
           {scene.hotspots.map((h) => (
             <button
               key={h.id}

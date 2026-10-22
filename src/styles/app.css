@@ -2027,3 +2027,312 @@ summary:focus-visible {
   border: 1px solid var(--danger);
   border-radius: 6px;
 }
+
+/* ================= 第4段階：演出 ================= */
+/* 時間の目安（設計書§14）：視点0.3秒／拡大0.25秒／カード獲得0.5秒／開閉0.5〜1.2秒／正解1.5〜3秒／扉の解錠約7秒 */
+
+.scene-book {
+  filter: brightness(0.82) saturate(0.9) drop-shadow(1px 0 1px rgba(0, 0, 0, 0.6));
+}
+
+/* カード獲得（0.5秒） */
+.card-toast {
+  position: fixed;
+  left: 50%;
+  top: 42%;
+  width: 96px;
+  z-index: 70;
+  pointer-events: none;
+  animation: card-get 0.5s ease-in both;
+}
+
+@keyframes card-get {
+  0% {
+    transform: translate(-50%, -50%) scale(1.25);
+    opacity: 0;
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, 180%) scale(0.45);
+    opacity: 0;
+  }
+}
+
+/* 引き出し（0.6秒）・木箱のふた（0.8秒） */
+.animate-drawer .drawer-inside {
+  animation: drawer-out 0.6s ease-out both;
+}
+
+@keyframes drawer-out {
+  from {
+    transform: translateY(-14px);
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.animate-box .box-btn svg {
+  animation: lid 0.8s ease-out both;
+}
+
+@keyframes lid {
+  from {
+    filter: brightness(0.7);
+    transform: translateY(2px);
+  }
+}
+
+/* 扉の解錠（約7秒のうち装置内 0〜5.2秒） */
+.door-device-ui.animate-solve {
+  animation: device-shake 1.4s ease-in-out both;
+}
+
+.door-device-ui.animate-solve .door-slots {
+  transition: gap 0.6s ease 3s;
+}
+
+.door-device-ui.is-unlocked .card-back {
+  filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0));
+}
+
+.door-device-ui.animate-solve .door-slots {
+  animation: map-glow 1s ease-in-out 3.2s both;
+}
+
+@keyframes map-glow {
+  50% {
+    filter: drop-shadow(0 0 10px rgba(255, 226, 160, 0.9));
+  }
+}
+
+.lock-released {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+  color: var(--gold-2);
+  letter-spacing: 0.2em;
+}
+
+.door-device-ui.animate-solve .lock-released,
+.door-device-ui.animate-solve .map-caption {
+  animation: fade-late 0.8s ease 3.8s both;
+}
+
+@keyframes fade-late {
+  from {
+    opacity: 0;
+  }
+}
+
+/* 探索画面：閉じた扉が開いた扉へ（1.8秒） */
+.door-opening-veil {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  animation: veil-out 1.8s ease-in-out 0.2s both;
+}
+
+@keyframes veil-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* ---------- 先へ進む：扉の演出 ---------- */
+.door-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: #000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.door-transition .skip-btn {
+  z-index: 3;
+}
+
+.dt-stage {
+  position: relative;
+  height: min(78dvh, calc(100vw * 860 / 640 * 0.92));
+  aspect-ratio: 640 / 860;
+  perspective: 1100px;
+}
+
+.dt-push {
+  position: absolute;
+  inset: 0;
+  animation: dt-appear 1.8s ease-out both, dt-push 2.2s ease-in 7s both;
+  transform-origin: 50% 55%;
+}
+
+@keyframes dt-appear {
+  from {
+    opacity: 0;
+    filter: brightness(0.2);
+  }
+}
+
+@keyframes dt-push {
+  to {
+    transform: scale(2.3);
+    opacity: 0;
+  }
+}
+
+/* 開口部（扉板の位置）：戸枠画像 640×860 のうち x 90〜550, y 88〜826 */
+.dt-hall,
+.dt-leaf {
+  position: absolute;
+  left: 14.0625%;
+  top: 10.2326%;
+  width: 71.875%;
+  height: 85.814%;
+}
+
+.dt-hall {
+  object-fit: cover;
+  object-position: 50% 55%;
+  filter: brightness(0.55);
+}
+
+.dt-leaf {
+  transform-origin: 100% 50%;
+  transform-style: preserve-3d;
+  animation: dt-open 4s cubic-bezier(0.45, 0.05, 0.4, 1) 3s both;
+}
+
+.dt-leaf > img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@keyframes dt-open {
+  0% {
+    transform: rotateY(0deg);
+  }
+  12% {
+    transform: rotateY(4deg);
+  }
+  100% {
+    transform: rotateY(78deg);
+    filter: brightness(0.45);
+  }
+}
+
+.dt-knob {
+  position: absolute;
+  left: 1%;
+  top: 52%;
+  width: 11%;
+}
+
+.dt-knob-turn {
+  transform-origin: 40px 62px;
+  animation: dt-knob 1.4s ease-in-out 1.8s both;
+}
+
+@keyframes dt-knob {
+  60%,
+  100% {
+    transform: rotate(-70deg);
+  }
+}
+
+.dt-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.dt-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 55% at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+  animation: dt-flicker 3s ease-in-out infinite alternate;
+}
+
+@keyframes dt-flicker {
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.dt-caption {
+  position: absolute;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--ivory-dim);
+  letter-spacing: 0.2em;
+  animation: fade-late 1s ease 4s both;
+}
+
+.door-transition.is-paused * {
+  animation-play-state: paused !important;
+}
+
+/* 動きを減らす：扉が浮かぶ → 開いた状態へ切り替わるだけ */
+.door-transition.is-reduced .dt-push {
+  animation: dt-appear 0.6s ease-out both;
+}
+
+.door-transition.is-reduced .dt-leaf {
+  animation: dt-reduced-open 0.01s linear 1.2s both;
+}
+
+@keyframes dt-reduced-open {
+  to {
+    opacity: 0;
+  }
+}
+
+.door-transition.is-reduced .dt-knob-turn,
+.door-transition.is-reduced .dt-light {
+  animation: none;
+}
+
+:root[data-reduced-motion='true'] .card-toast,
+:root[data-reduced-motion='true'] .animate-drawer .drawer-inside,
+:root[data-reduced-motion='true'] .animate-box .box-btn svg,
+:root[data-reduced-motion='true'] .door-device-ui.animate-solve .door-slots,
+:root[data-reduced-motion='true'] .door-device-ui.animate-solve .lock-released,
+:root[data-reduced-motion='true'] .door-device-ui.animate-solve .map-caption,
+:root[data-reduced-motion='true'] .door-opening-veil {
+  animation: none;
+}
+
+:root[data-reduced-motion='true'] .card-toast,
+:root[data-reduced-motion='true'] .door-opening-veil {
+  display: none;
+}
+
+/* 扉板（460×738）上の装置の位置：x 35〜445, y 222〜409 */
+.dt-device {
+  position: absolute;
+  left: 7.6%;
+  top: 30.1%;
+  width: 89.1%;
+  height: auto;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.7)) brightness(0.78) saturate(0.85);
+}
+
+.room-view {
+  position: relative;
+  aspect-ratio: 1448 / 1086;
+  overflow: hidden;
+}

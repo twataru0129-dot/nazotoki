@@ -28,6 +28,11 @@ function hotspotStyle(r: Rect): CSSProperties {
 export function SceneStage({ highlight }: { highlight: boolean }) {
   const { state, dispatch } = useGame();
   const scene = SCENES[state.facing];
+  const p = state.progress;
+  // 南：解錠後は開扉の画像（閉扉と同じベースから作ったもの）に切り替える。開く演出は第5段階
+  const southOpen = state.facing === 'south' && p.door.unlocked;
+  const image = southOpen ? 'bg/a_south_open.webp' : scene.image;
+  const provisional = southOpen ? '開扉の画像は元画像のまま（扉上の装置の描き込みが謎用の装置と異なる）／開く演出は第5段階' : scene.provisional;
   const start = useRef<{ x: number; y: number; id: number } | null>(null);
   const swiped = useRef(false);
   const [dragDx, setDragDx] = useState(0);
@@ -88,24 +93,28 @@ export function SceneStage({ highlight }: { highlight: boolean }) {
         <div key={`${state.facing}-${state.lastTurn?.n ?? 0}`} className={`stage-layer ${turnClass}`}>
           <img
             className="stage-bg"
-            src={assetUrl(scene.image)}
+            src={assetUrl(image)}
             alt={`書斎A・${FACING_LABEL[state.facing]}の壁`}
             draggable={false}
           />
           {state.facing === 'east' && (
             <div className="stage-overlay" style={place(OVERLAYS.clockFace)}>
-              <ClockFace minutes={17} className="fill" />
+              <ClockFace minutes={p.clock.minutes} className="fill" />
             </div>
           )}
           {state.facing === 'west' &&
             (['A', 'B', 'C', 'D'] as const).map((k) => (
-              <div key={k} className="stage-overlay painting-mat" style={place(OVERLAYS.paintingCanvases[k])}>
+              <div
+                key={k}
+                className={`stage-overlay painting-mat${k === 'C' && p.paintings.frameOpen ? ' is-tilted' : ''}`}
+                style={place(OVERLAYS.paintingCanvases[k])}
+              >
                 <img src={assetUrl(`svg/paintings/painting_${k}.svg`)} alt="" draggable={false} />
               </div>
             ))}
-          {state.facing === 'south' && (
+          {state.facing === 'south' && !southOpen && (
             <div className="stage-overlay device-plate" style={place(OVERLAYS.doorDevice)}>
-              <DoorDevice dialMinutes={17} className="fill" />
+              <DoorDevice dialMinutes={p.door.dialMinute} className="fill" />
             </div>
           )}
           {scene.hotspots.map((h) => (
@@ -120,10 +129,10 @@ export function SceneStage({ highlight }: { highlight: boolean }) {
             />
           ))}
         </div>
-        {scene.provisional && (
+        {provisional && (
           <details className="provisional">
             <summary>仮背景</summary>
-            <p>{scene.provisional}</p>
+            <p>{provisional}</p>
           </details>
         )}
       </div>

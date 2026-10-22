@@ -4,6 +4,7 @@ import { useGame } from '../game/store';
 import { FACING_LABEL } from '../game/types';
 import { CloseupView } from './CloseupView';
 import { SceneStage } from './SceneStage';
+import { SelectionChip } from './SelectionChip';
 
 const HIGHLIGHT_MS = 1500;
 
@@ -67,6 +68,15 @@ export function ExploreScreen() {
           右 <span aria-hidden="true">→</span>
         </button>
       </nav>
+
+      {state.facing === 'south' && state.progress.door.unlocked && (
+        <div className="proceed-row">
+          <button type="button" className="primary-btn" onClick={() => dispatch({ type: 'proceed' })}>
+            先へ進む
+          </button>
+        </div>
+      )}
+      <SelectionChip />
 
       <p className="monologue" aria-live="polite" data-testid="monologue">
         {state.monologue ?? '左右の矢印か横スワイプで向きを変え、気になる物をタップして調べる。'}

@@ -6,6 +6,8 @@ import { BookshelfCloseup } from './closeups/BookshelfCloseup';
 import { ClockCloseup } from './closeups/ClockCloseup';
 import { DeskCloseup } from './closeups/DeskCloseup';
 import { DoorCloseup } from './closeups/DoorCloseup';
+import { InventoryBar } from './InventoryBar';
+import { SelectionChip } from './SelectionChip';
 import { PaintingsCloseup } from './closeups/PaintingsCloseup';
 import { WindowCloseup } from './closeups/WindowCloseup';
 
@@ -52,6 +54,13 @@ export function CloseupView({ id }: { id: CloseupId }) {
         {text.inscription && <p className="inscription">「{text.inscription}」</p>}
         {text.description && <p className="description">{text.description}</p>}
       </div>
+      <footer className="closeup-foot">
+        <p className="monologue" aria-live="polite" data-testid="closeup-monologue">
+          {state.monologue ?? '\u00a0'}
+        </p>
+        {id === 'desk' && <InventoryBar />}
+        {id !== 'desk' && id !== 'door' && <SelectionChip />}
+      </footer>
     </section>
   );
 }

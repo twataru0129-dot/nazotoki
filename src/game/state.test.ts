@@ -43,7 +43,7 @@ describe('画面遷移', () => {
     expect(s.closeup).toBe('clock');
   });
 
-  it('ヒントは1段階ずつ、最大3段階', () => {
+  it('ヒントは1段階ずつ、最大3段階（進行データに含む）', () => {
     let s = explore();
     for (let i = 0; i < 5; i++) s = reducer(s, { type: 'revealHint', puzzle: 'clock' });
     expect(s.progress.hintLevels.clock).toBe(3);

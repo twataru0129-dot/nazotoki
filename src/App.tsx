@@ -1,3 +1,4 @@
+import { EndingScreen } from './components/EndingScreen';
 import { ExploreScreen } from './components/ExploreScreen';
 import { OpeningScreen } from './components/OpeningScreen';
 import { OverlayHost } from './components/OverlayHost';
@@ -13,6 +14,7 @@ export function App() {
         {state.screen === 'title' && <TitleScreen />}
         {state.screen === 'opening' && <OpeningScreen />}
         {state.screen === 'explore' && <ExploreScreen />}
+        {state.screen === 'ending' && <EndingScreen />}
       </div>
       <OverlayHost />
     </div>

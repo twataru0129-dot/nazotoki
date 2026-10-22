@@ -1,9 +1,10 @@
+import { useCallback, useState } from 'react';
 import { assetUrl } from '../../game/assets';
-import { DevNote } from '../DevNote';
-
-// 初期並び：緑・黒・白・青（設計書§5）。並べ替え操作は第2段階で追加する。
-const INITIAL = ['green', 'black', 'ivory', 'blue'] as const;
-const NAME = { green: '緑の本', black: '黒の本', ivory: '白の本', blue: '青の本' } as const;
+import { BOOKS, SYMBOL_NAME, type BookId } from '../../game/logic';
+import { cardRevealed } from '../../game/state';
+import { useGame } from '../../game/store';
+import { CardFront } from '../art/CardFace';
+import { useDrag } from '../useDrag';
 
 function Moon() {
   return (
@@ -23,21 +24,90 @@ function Sun() {
   );
 }
 
+const label = (b: BookId) => `${BOOKS[b].name}の本（左：${SYMBOL_NAME[BOOKS[b].left]}、右：${SYMBOL_NAME[BOOKS[b].right]}）`;
+
 export function BookshelfCloseup() {
+  const { state, dispatch } = useGame();
+  const books = state.progress.books;
+  const [picked, setPicked] = useState<number | null>(null);
+  const animate = state.fx?.key === 'books-solved';
+
+  const onDrop = useCallback(
+    (from: number, drop: string | null) => {
+      setPicked(null);
+      if (drop?.startsWith('book-')) dispatch({ type: 'swapBooks', i: from, j: Number(drop.slice(5)) });
+    },
+    [dispatch],
+  );
+  const { bind, ghost } = useDrag<number>(onDrop);
+
+  const tap = (i: number) => {
+    if (books.solved) return;
+    if (picked === null) setPicked(i);
+    else if (picked === i) setPicked(null);
+    else {
+      dispatch({ type: 'swapBooks', i: picked, j: i });
+      setPicked(null);
+    }
+  };
+
   return (
     <>
-      <div className="shelf" aria-label="特別な4冊の本">
+      <div className={`shelf${books.solved ? ' is-solved' : ''}`}>
         <Moon />
-        <ol className="shelf-books">
-          {INITIAL.map((b) => (
+        <ol className="shelf-books" aria-label="特別な4冊の本（左から）">
+          {books.order.map((b, i) => (
             <li key={b}>
-              <img src={assetUrl(`svg/books/book_${b}.svg`)} alt={NAME[b]} draggable={false} />
+              <button
+                type="button"
+                className={`book${picked === i ? ' is-picked' : ''}${ghost?.payload === i ? ' is-dragging' : ''}`}
+                data-drop={`book-${i}`}
+                data-book={b}
+                aria-label={`${i + 1}番目：${label(b)}`}
+                aria-pressed={picked === i}
+                disabled={books.solved}
+                onClick={() => tap(i)}
+                {...(books.solved ? {} : bind(i))}
+              >
+                <img src={assetUrl(`svg/books/book_${b}.svg`)} alt="" draggable={false} />
+              </button>
+              <span className="book-caption" aria-hidden="true">
+                {SYMBOL_NAME[BOOKS[b].left]}・{SYMBOL_NAME[BOOKS[b].right]}
+              </span>
             </li>
           ))}
         </ol>
         <Sun />
       </div>
-      <DevNote>本の並べ替え（ドラッグ／タップ入れ替え）は第2段階で実装します。</DevNote>
+      {ghost && (
+        <img className="drag-ghost book-ghost" style={{ left: ghost.x, top: ghost.y }} src={assetUrl(`svg/books/book_${books.order[ghost.payload]}.svg`)} alt="" />
+      )}
+      {!books.solved && (
+        <p className="op-help">{picked === null ? '本をタップして選び、入れ替えたい本をタップする（ドラッグでも入れ替えられる）。' : `${BOOKS[books.order[picked]].name}の本を選んでいる。入れ替える本をタップ。`}</p>
+      )}
+
+      <div className={`compartment${books.compartmentOpen ? ' is-open' : ''}${animate ? ' animate-open' : ''}`} aria-label="棚の下の隠し収納">
+        {books.compartmentOpen ? (
+          cardRevealed(state.progress, 'A') ? (
+            <button type="button" className="card-pick" onClick={() => dispatch({ type: 'takeCard', id: 'A' })} aria-label="記録カードAを取る">
+              <CardFront id="A" />
+              <span className="pick-label">取る</span>
+            </button>
+          ) : (
+            // 任意調査O2（本棚の奥の大きな金具）の接続先。発見と記録は第3段階で実装する
+            <div className="compartment-empty" data-optional="O2">
+              <svg viewBox="0 0 120 40" aria-hidden="true">
+                <rect x="10" y="12" width="100" height="16" rx="3" fill="#6b5330" stroke="#a88a55" strokeWidth="2" />
+                <circle cx="22" cy="20" r="3" fill="#2b1d12" />
+                <circle cx="98" cy="20" r="3" fill="#2b1d12" />
+              </svg>
+              <span>収納は空になった。奥に大きな金具が見える。</span>
+            </div>
+          )
+        ) : (
+          <span className="compartment-closed">棚の下に、細い継ぎ目がある。</span>
+        )}
+      </div>
     </>
   );
 }

@@ -64,7 +64,7 @@ export function SettingsPanel() {
       {state.screen === 'explore' &&
         (confirmTitle ? (
           <div className="confirm">
-            <p>タイトルへ戻ると、現在の進行は失われる（進行の自動保存は第3段階で実装）。戻りますか？</p>
+            <p>タイトルへ戻りますか？　進行は自動で保存されていて、「つづきから」で再開できる。</p>
             <div className="confirm-row">
               <button type="button" className="ghost-btn" onClick={() => setConfirmTitle(false)}>
                 やめる

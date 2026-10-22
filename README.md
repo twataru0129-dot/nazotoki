@@ -24,3 +24,4 @@ npm run test:e2e     # Playwright（ビルド済み dist を vite preview で検
 - `docs/asset_audit.md` 素材監査（第0段階）
 - `docs/implementation_plan.md` 段階計画
 - `docs/phase1_report.md` 第1段階の報告
+- `docs/phase2_report.md` 第2段階の報告（5つの謎・進行管理・オートセーブ）

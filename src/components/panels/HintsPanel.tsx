@@ -42,7 +42,7 @@ export function HintsPanel() {
       ) : (
         <p className="description">この謎のヒントはすべて表示した。答えを見ても、謎は自分で解く必要がある。</p>
       )}
-      <DevNote>開いたヒントの保存と「次に何を調べる？」の案内は第3段階で実装します。</DevNote>
+      <DevNote>開いた段階は自動保存されます。「次に何を調べる？」の案内は第3段階で実装します。</DevNote>
     </>
   );
 }

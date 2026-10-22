@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useGame } from '../../game/store';
 import { HINT_STAGE_LABEL, HINTS, PUZZLE_NAME } from '../../game/text';
 import { PUZZLES, type CloseupId, type PuzzleId } from '../../game/types';
-import { DevNote } from '../DevNote';
+import { explorationGuide } from '../../game/guide';
 
 const FROM_CLOSEUP: Partial<Record<CloseupId, PuzzleId>> = {
   bookshelf: 'books',
@@ -17,9 +17,25 @@ export function HintsPanel() {
   const { state, dispatch } = useGame();
   const [open, setOpen] = useState<PuzzleId>((state.closeup && FROM_CLOSEUP[state.closeup]) || 'books');
   const level = state.progress.hintLevels[open];
+  const [guideOpen, setGuideOpen] = useState(false);
 
   return (
     <>
+      <section className="guide" aria-label="次に何を調べる？">
+        <h3 className="sub-head">次に何を調べる？</h3>
+        {guideOpen ? (
+          <ul className="guide-list" data-testid="guide">
+            {explorationGuide(state.progress).map((g) => (
+              <li key={g}>{g}</li>
+            ))}
+          </ul>
+        ) : (
+          <button type="button" className="ghost-btn wide" onClick={() => setGuideOpen(true)}>
+            探索の手がかりを見る（謎の答えは出ない）
+          </button>
+        )}
+      </section>
+      <h3 className="sub-head">謎のヒント</h3>
       <div className="tabs hint-tabs" role="tablist" aria-label="謎を選ぶ">
         {PUZZLES.map((p) => (
           <button key={p} type="button" role="tab" aria-selected={open === p} className="tab" onClick={() => setOpen(p)}>
@@ -42,7 +58,7 @@ export function HintsPanel() {
       ) : (
         <p className="description">この謎のヒントはすべて表示した。答えを見ても、謎は自分で解く必要がある。</p>
       )}
-      <DevNote>開いた段階は自動保存されます。「次に何を調べる？」の案内は第3段階で実装します。</DevNote>
+      <p className="description small">開いたヒントは手帳とともに保存され、何度でも読み返せる。ヒントを使っても減点はない。</p>
     </>
   );
 }

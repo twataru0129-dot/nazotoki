@@ -4,6 +4,7 @@ import { cardRevealed } from '../../game/state';
 import { useGame } from '../../game/store';
 import { BookArt } from '../art/BookArt';
 import { CardFront } from '../art/CardFace';
+import { Examine } from '../Examine';
 import { useDrag } from '../useDrag';
 
 function Moon() {
@@ -88,22 +89,24 @@ export function BookshelfCloseup() {
 
       <div className={`compartment${books.compartmentOpen ? ' is-open' : ''}${animate ? ' animate-open' : ''}`} aria-label="棚の下の隠し収納">
         {books.compartmentOpen ? (
-          cardRevealed(state.progress, 'A') ? (
-            <button type="button" className="card-pick" onClick={() => dispatch({ type: 'takeCard', id: 'A' })} aria-label="記録カードAを取る">
-              <CardFront id="A" />
-              <span className="pick-label">取る</span>
-            </button>
-          ) : (
-            // 任意調査O2（本棚の奥の大きな金具）の接続先。発見と記録は第3段階で実装する
-            <div className="compartment-empty" data-optional="O2">
+          <div className="compartment-inner">
+            {cardRevealed(state.progress, 'A') ? (
+              <button type="button" className="card-pick" onClick={() => dispatch({ type: 'takeCard', id: 'A' })} aria-label="記録カードAを取る">
+                <CardFront id="A" />
+                <span className="pick-label">取る</span>
+              </button>
+            ) : (
+              <span className="behind-empty">カードを取った後の収納。</span>
+            )}
+            {/* 任意調査O2：収納の奥の大きな金具 */}
+            <Examine id="O2" label="収納の奥の金具を調べる" className="bracket">
               <svg viewBox="0 0 120 40" aria-hidden="true">
                 <rect x="10" y="12" width="100" height="16" rx="3" fill="#6b5330" stroke="#a88a55" strokeWidth="2" />
                 <circle cx="22" cy="20" r="3" fill="#2b1d12" />
                 <circle cx="98" cy="20" r="3" fill="#2b1d12" />
               </svg>
-              <span>収納は空になった。奥に大きな金具が見える。</span>
-            </div>
-          )
+            </Examine>
+          </div>
         ) : (
           <span className="compartment-closed">棚の下に、細い継ぎ目がある。</span>
         )}

@@ -1,5 +1,5 @@
 import { BOOK_SOLUTION, CARD_IDS, type BookId, type CardId } from './logic';
-import { validateSave } from './save';
+import { SAVE_VERSION, validateSave } from './save';
 import { doorSlots, initialState, reducer, type Action, type GameState } from './state';
 
 const run = (s: GameState, ...as: Action[]) => as.reduce(reducer, s);
@@ -33,7 +33,7 @@ function checkInvariants(s: GameState) {
     expect(slots.filter((x) => x === id).length).toBe(where === 'slot' ? 1 : 0);
   }
   expect(p.desk.key === 'used').toBe(p.desk.boxOpen);
-  expect(validateSave({ saveVersion: 1, chapter: 1, savedAt: '', facing: s.facing, closeup: s.closeup, progress: p })).not.toBeNull();
+  expect(validateSave({ saveVersion: SAVE_VERSION, chapter: 1, savedAt: '', facing: s.facing, closeup: s.closeup, progress: p })).not.toBeNull();
 }
 
 function permutations<T>(xs: T[]): T[][] {

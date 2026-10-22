@@ -7,7 +7,7 @@ import { LetterBack, LetterFront } from './art/Letter';
 type Step = 'arrive' | 'letter' | 'enter';
 
 export function OpeningScreen() {
-  const { dispatch } = useGame();
+  const { state, dispatch } = useGame();
   const [step, setStep] = useState<Step>('arrive');
   const [side, setSide] = useState<'front' | 'back'>('front');
   const go = (s: Step) => {
@@ -19,7 +19,7 @@ export function OpeningScreen() {
   return (
     <main className="opening" data-step={step}>
       <button type="button" className="skip-btn" onClick={() => dispatch({ type: 'enterStudy' })}>
-        スキップ
+        {state.openingReplay ? '書斎に戻る' : 'スキップ'}
       </button>
       {step === 'arrive' && (
         <div className="opening-text fade-in" key="arrive">
@@ -34,6 +34,7 @@ export function OpeningScreen() {
       {step === 'letter' && (
         <div className="opening-letter fade-in" key="letter">
           {side === 'front' ? <LetterFront /> : <LetterBack />}
+          {side === 'back' && state.monologue && <p className="monologue inline">{state.monologue}</p>}
           <div className="confirm-row">
             <button
               type="button"

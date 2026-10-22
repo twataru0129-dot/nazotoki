@@ -64,6 +64,22 @@ class AudioEngine {
     this.sync();
   }
 
+  /** 一瞬の静寂：BGMと環境音を絞り、ms 後に戻す（4枚目の記録がそろった瞬間など） */
+  duck(ms: number): void {
+    if (!this.ctx || !this.settings) return;
+    const t = this.ctx.currentTime;
+    for (const ch of ['bgm', 'ambient'] as const) {
+      const g = this.channelGain.get(ch);
+      if (!g) continue;
+      const v = this.settings.muted[ch] ? 0 : this.settings.volume[ch];
+      g.gain.cancelScheduledValues(t);
+      g.gain.setValueAtTime(g.gain.value, t);
+      g.gain.linearRampToValueAtTime(v * 0.05, t + 0.4);
+      g.gain.setValueAtTime(v * 0.05, t + ms / 1000);
+      g.gain.linearRampToValueAtTime(v, t + ms / 1000 + 1.2);
+    }
+  }
+
   playSfx(key: string, minIntervalMs = 120): void {
     if (!this.ctx) return;
     const now = performance.now();

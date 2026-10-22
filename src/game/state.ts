@@ -16,6 +16,7 @@ import {
   type DrawerId,
   type PaintingId,
 } from './logic';
+import { OPTIONALS, optionalAvailable } from './optional';
 import { DEFAULT_SETTINGS, type Settings } from './settings';
 import { FACINGS, PUZZLES, type CloseupId, type Facing, type OverlayId, type PuzzleId, type Screen } from './types';
 
@@ -37,9 +38,21 @@ export interface Progress {
   door: { dialMinute: number; unlocked: boolean };
   cards: Record<CardId, CardLocation>;
   hintLevels: Record<PuzzleId, 0 | 1 | 2 | 3>;
+  /** 発見した任意調査（発見順） */
   optionalNotes: OptionalId[];
-  eventsSeen: string[];
+  /** 一度きりのイベント（'knock' = 2枚目の物音、'silence' = 4枚目の静寂） */
+  eventsSeen: EventId[];
+  /** カードを手に入れた順（手帳の「取得順」表示用） */
+  acquired: CardId[];
+  /** 画面が表示されている間の実プレイ時間（秒）。扉の解錠まで */
+  playSeconds: number;
+  /** 扉を解錠した瞬間のプレイ時間で固定。以後変わらない（旧データから移行した場合は null のこともある） */
+  clearSeconds: number | null;
+  /** 解錠後の再調査の時間（別カウンター） */
+  afterClearSeconds: number;
 }
+
+export type EventId = 'knock' | 'silence';
 
 export function initialProgress(): Progress {
   return {
@@ -52,6 +65,10 @@ export function initialProgress(): Progress {
     hintLevels: Object.fromEntries(PUZZLES.map((p) => [p, 0])) as Progress['hintLevels'],
     optionalNotes: [],
     eventsSeen: [],
+    acquired: [],
+    playSeconds: 0,
+    clearSeconds: null,
+    afterClearSeconds: 0,
   };
 }
 
@@ -114,6 +131,8 @@ export interface GameState {
   selected: Selection;
   /** 直前に起きた出来事。成功演出・効果音はこれが変わったときだけ再生する（再訪問・再読み込みで繰り返さない） */
   fx: { key: string; n: number } | null;
+  /** 手帳からオープニングを見返している（終わったら元の探索へ戻る。進行は変えない） */
+  openingReplay: boolean;
   progress: Progress;
   settings: Settings;
 }
@@ -146,7 +165,11 @@ export type Action =
   | { type: 'removeCard'; slot: number }
   | { type: 'adjustDial'; delta: number }
   | { type: 'proceed' }
-  | { type: 'backToStudy' };
+  | { type: 'backToStudy' }
+  // 任意調査・時間・オープニングの見返し
+  | { type: 'discover'; id: OptionalId }
+  | { type: 'tick' }
+  | { type: 'replayOpening' };
 
 export function initialState(settings: Settings = DEFAULT_SETTINGS): GameState {
   return {
@@ -158,6 +181,7 @@ export function initialState(settings: Settings = DEFAULT_SETTINGS): GameState {
     lastTurn: null,
     selected: null,
     fx: null,
+    openingReplay: false,
     progress: initialProgress(),
     settings,
   };
@@ -187,6 +211,8 @@ const MSG = {
   clockSolved: '歯車の噛み合う音がして、時計の下の収納が開いた。',
   clockReturned: '針がひとりでに動き、0時17分へ戻った……。',
   cardTaken: (id: CardId) => `記録カード${id}を手に入れた。`,
+  knock: '……壁の向こうで、小さく「コトッ」と音がした。',
+  silence: '……ふいに、雨の音が遠のいた。4枚の記録がそろった。南の扉が、静かにこちらを待っている。',
   doorWrong: '4枚を差し込んだが、装置は動かない。',
   doorSolved: 'カードが一斉に裏返り、線がつながった。重い錠の外れる音がした。',
 };
@@ -205,7 +231,12 @@ export function reducer(state: GameState, action: Action): GameState {
         closeup: action.closeup,
       };
     case 'enterStudy':
+      // 見返しの場合は、元の向きのまま探索に戻る
+      if (state.openingReplay) return { ...state, screen: 'explore', openingReplay: false, closeup: null, overlay: null, monologue: null };
       return { ...state, screen: 'explore', facing: 'north', closeup: null, overlay: null, monologue: null };
+    case 'replayOpening':
+      if (state.screen !== 'explore') return state;
+      return { ...state, screen: 'opening', openingReplay: true, overlay: null, closeup: null, selected: null };
     case 'toTitle':
       return { ...state, screen: 'title', closeup: null, overlay: null, monologue: null, selected: null };
     case 'turn': {
@@ -293,16 +324,27 @@ export function reducer(state: GameState, action: Action): GameState {
     case 'takeCard': {
       const id = action.id;
       if (!cardRevealed(p, id)) return state; // 収納が閉じている／すでに取得済み
-      let next: Progress = { ...p, cards: { ...p.cards, [id]: { at: 'inventory' } } };
+      let next: Progress = { ...p, cards: { ...p.cards, [id]: { at: 'inventory' } }, acquired: [...p.acquired, id] };
       let msg = MSG.cardTaken(id);
-      let key = 'card-take';
+      const keys = [id === 'D' ? 'card-take-D' : 'card-take'];
       if (id === 'D') {
         // カードDを取ると、針はひとりでに 00:17 へ戻る。解決済み・収納の状態は変わらない
         next = { ...next, clock: { ...next.clock, minutes: CLOCK_STOPPED, handsReturned: true } };
         msg = `${msg}　${MSG.clockReturned}`;
-        key = 'card-take-D';
       }
-      return withProgress(state, next, key, msg);
+      // 一度きりのイベント：2枚目で壁の物音、4枚目で静寂（フラグを保存し、再読み込みで再発火しない）
+      const held = heldCount(next);
+      if (held >= 2 && !next.eventsSeen.includes('knock')) {
+        next = { ...next, eventsSeen: [...next.eventsSeen, 'knock'] };
+        msg = `${msg}\n${MSG.knock}`;
+        keys.push('knock');
+      }
+      if (held === 4 && !next.eventsSeen.includes('silence')) {
+        next = { ...next, eventsSeen: [...next.eventsSeen, 'silence'] };
+        msg = `${msg}\n${MSG.silence}`;
+        keys.push('silence');
+      }
+      return withProgress(state, next, keys.join('|'), msg);
     }
 
     // ---------- 扉 ----------
@@ -335,6 +377,23 @@ export function reducer(state: GameState, action: Action): GameState {
       return { ...state, screen: 'ending', closeup: null, overlay: null, selected: null };
     case 'backToStudy':
       return { ...state, screen: 'explore', facing: 'south', closeup: null };
+
+    // ---------- 任意調査 ----------
+    case 'discover': {
+      const def = OPTIONALS[action.id];
+      if (!optionalAvailable(p, action.id)) return state;
+      // 発見済みなら独白だけ（再取得の演出はしない）
+      if (p.optionalNotes.includes(action.id)) return { ...state, monologue: def.monologue };
+      return withProgress(state, { ...p, optionalNotes: [...p.optionalNotes, action.id] }, 'note', `${def.monologue}\n（手帳に「${def.title}」を書き留めた）`);
+    }
+
+    // ---------- 時間 ----------
+    case 'tick':
+      if (state.screen !== 'explore' && state.screen !== 'ending') return state;
+      return {
+        ...state,
+        progress: p.door.unlocked ? { ...p, afterClearSeconds: p.afterClearSeconds + 1 } : { ...p, playSeconds: p.playSeconds + 1 },
+      };
   }
 }
 
@@ -342,7 +401,8 @@ export function reducer(state: GameState, action: Action): GameState {
 function checkDoor(state: GameState, next: Progress, fxKey: string): GameState {
   const slots = doorSlots(next);
   if (isDoorSolved(slots, next.door.dialMinute)) {
-    return withProgress(state, { ...next, door: { ...next.door, unlocked: true } }, 'door-solved', MSG.doorSolved);
+    // クリア時間は解錠の瞬間に固定する
+    return withProgress(state, { ...next, door: { ...next.door, unlocked: true }, clearSeconds: next.playSeconds }, 'door-solved', MSG.doorSolved);
   }
   const full = slots.every(Boolean);
   return withProgress(state, next, fxKey, full && fxKey === 'door-place' ? MSG.doorWrong : null);

@@ -4,6 +4,8 @@ import { useGame } from '../../game/store';
 import { DRAWER_LABELS } from '../../game/text';
 import { CardFront } from '../art/CardFace';
 import { KeyIcon } from '../art/KeyIcon';
+import { OldPhoto } from '../art/OldPhoto';
+import { Examine } from '../Examine';
 
 const POS: Record<DrawerId, string> = { left: '左', middle: '中央', right: '右' };
 
@@ -56,6 +58,8 @@ export function DeskCloseup() {
             ))}
         </div>
 
+        <OldPhoto />
+
         <ol className="drawers" aria-label="3つの引き出し">
           {DRAWERS.map((d) => {
             const open = d === 'right' && rightOpen;
@@ -74,7 +78,7 @@ export function DeskCloseup() {
                   <span className="drawer-handle" aria-hidden="true" />
                 </button>
                 {open && (
-                  <div className="drawer-inside" data-optional="O4">
+                  <div className="drawer-inside">
                     {key === 'unfound' ? (
                       <button type="button" className="key-pick" onClick={() => dispatch({ type: 'takeKey' })} aria-label="小さな鍵を取る">
                         <KeyIcon />
@@ -83,10 +87,10 @@ export function DeskCloseup() {
                     ) : (
                       <span className="behind-empty">{key === 'used' ? '鍵は木箱に使った。' : '鍵は持っている。'}</span>
                     )}
-                    {/* 任意調査O4（底の「II」の刻印）の接続先。発見と記録は第3段階で実装する */}
-                    <span className="engraving" aria-hidden="true">
-                      II
-                    </span>
+                    {/* 任意調査O4：引き出しの底の「II」の刻印 */}
+                    <Examine id="O4" label="引き出しの底を調べる" className="engraving">
+                      <span aria-hidden="true">II</span>
+                    </Examine>
                   </div>
                 )}
               </li>

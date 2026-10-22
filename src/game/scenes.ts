@@ -39,6 +39,8 @@ export const SCENES: Record<Facing, SceneDef> = {
     provisional: '閉じた扉は開扉画像からの加工／左右の壁は塗り替え・減光の仮処置',
     hotspots: [
       { id: 'door', label: '施錠された扉', rect: { x: 560, y: 108, w: 460, h: 738 }, action: { type: 'closeup', id: 'door' } },
+      // 任意調査O5：右の戸枠の蝶番（上）
+      { id: 'hinge', label: '扉の蝶番', rect: { x: 1004, y: 130, w: 40, h: 84 }, action: { type: 'examine', id: 'O5' } },
     ],
   },
   west: {

@@ -24,16 +24,16 @@ describe('オートセーブ（最小限）', () => {
     const p = initialProgress();
     // カードが2か所（同じ枠を2枚が使う）
     const dup = { ...p, cards: { ...p.cards, A: { at: 'slot', index: 0 }, B: { at: 'slot', index: 0 } } };
-    expect(validateSave({ saveVersion: 1, chapter: 1, savedAt: '', facing: 'north', closeup: null, progress: dup })).toBeNull();
+    expect(validateSave({ saveVersion: 2, chapter: 1, savedAt: '', facing: 'north', closeup: null, progress: dup })).toBeNull();
     // 収納が開いていないのにカードを持っている
     const ghost = { ...p, cards: { ...p.cards, D: { at: 'inventory' } } };
-    expect(validateSave({ saveVersion: 1, chapter: 1, savedAt: '', facing: 'north', closeup: null, progress: ghost })).toBeNull();
+    expect(validateSave({ saveVersion: 2, chapter: 1, savedAt: '', facing: 'north', closeup: null, progress: ghost })).toBeNull();
     // 正解でないのに解錠済み
     const fake = { ...p, door: { dialMinute: 14, unlocked: true } };
-    expect(validateSave({ saveVersion: 1, chapter: 1, savedAt: '', facing: 'north', closeup: null, progress: fake })).toBeNull();
+    expect(validateSave({ saveVersion: 2, chapter: 1, savedAt: '', facing: 'north', closeup: null, progress: fake })).toBeNull();
     // 鍵を使ったのに箱が閉じている
     const key = { ...p, desk: { rightOpen: true, key: 'used', boxOpen: false } };
-    expect(validateSave({ saveVersion: 1, chapter: 1, savedAt: '', facing: 'north', closeup: null, progress: key })).toBeNull();
+    expect(validateSave({ saveVersion: 2, chapter: 1, savedAt: '', facing: 'north', closeup: null, progress: key })).toBeNull();
     // 版が違う
     expect(validateSave({ saveVersion: 99, chapter: 1, savedAt: '', facing: 'north', closeup: null, progress: p })).toBeNull();
   });

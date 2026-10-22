@@ -24,7 +24,11 @@ export interface Rect {
   h: number;
 }
 
-export type HotspotAction = { type: 'closeup'; id: CloseupId } | { type: 'monologue'; text: string };
+export type HotspotAction =
+  | { type: 'closeup'; id: CloseupId }
+  | { type: 'monologue'; text: string }
+  /** 任意調査（探索補助では光らせない） */
+  | { type: 'examine'; id: 'O1' | 'O2' | 'O3' | 'O4' | 'O5' | 'O6' };
 
 export interface Hotspot {
   id: string;

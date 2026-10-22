@@ -3,6 +3,7 @@ import type { PaintingId } from '../../game/logic';
 import { cardRevealed } from '../../game/state';
 import { useGame } from '../../game/store';
 import { CardFront } from '../art/CardFace';
+import { Examine } from '../Examine';
 
 // 判定用表示は paintings/painting_*.svg を正とする（生成画像の陰影は使わない）
 export function PaintingsCloseup() {
@@ -19,16 +20,18 @@ export function PaintingsCloseup() {
           return (
             <figure key={k} className={`painting-slot${open ? ' is-open' : ''}`}>
               {open && (
-                <div className="painting-behind" data-optional="O3">
-                  {/* 任意調査O3（額縁裏の新しい傷）の接続先。発見と記録は第3段階で実装する */}
-                  <span className="scratch" aria-hidden="true" />
+                <div className="painting-behind">
+                  {/* 任意調査O3：額縁の裏の新しい傷 */}
+                  <Examine id="O3" label="額の裏の傷を調べる" className="scratch-spot">
+                    <span className="scratch" aria-hidden="true" />
+                  </Examine>
                   {cardRevealed(state.progress, 'B') ? (
                     <button type="button" className="card-pick" onClick={() => dispatch({ type: 'takeCard', id: 'B' })} aria-label="記録カードBを取る">
                       <CardFront id="B" compact />
                       <span className="pick-label">取る</span>
                     </button>
                   ) : (
-                    <span className="behind-empty">額の裏に、新しい擦り傷がある。</span>
+                    <span className="behind-empty">カードを取った後の額の裏。</span>
                   )}
                 </div>
               )}

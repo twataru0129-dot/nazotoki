@@ -239,7 +239,7 @@ test('はじめから：保存がある場合は確認し、他の章のデー�
   await page.evaluate(() => localStorage.setItem('study0017.ch2.save', 'keep'));
   await page.reload();
   await page.getByRole('button', { name: 'はじめから' }).click();
-  await expect(page.getByText('第1章の進行を消して')).toBeVisible();
+  await expect(page.getByText(/第1章の進行（.*）を消して/)).toBeVisible();
   await page.getByRole('button', { name: '最初から始める' }).click();
   expect(await page.evaluate(() => localStorage.getItem('study0017.ch2.save'))).toBe('keep');
 });
@@ -248,7 +248,7 @@ test('壊れた保存データは読み込まず、警告を出す', async ({ pa
   await page.goto('./');
   await page.evaluate(() => localStorage.setItem('study0017.ch1.save', '{broken'));
   await page.reload();
-  await expect(page.getByRole('alert')).toContainText('正しく読み込めなかった');
+  await expect(page.getByRole('alert')).toContainText('正しく読み込めませんでした');
   await expect(page.getByRole('button', { name: 'つづきから' })).toHaveCount(0);
 });
 

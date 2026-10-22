@@ -64,6 +64,7 @@ export function SceneStage({ highlight }: { highlight: boolean }) {
   const activate = (h: Hotspot) => {
     if (swiped.current) return;
     if (h.action.type === 'closeup') dispatch({ type: 'openCloseup', id: h.action.id });
+    else if (h.action.type === 'examine') dispatch({ type: 'discover', id: h.action.id });
     else dispatch({ type: 'say', text: h.action.text });
   };
 
@@ -121,7 +122,7 @@ export function SceneStage({ highlight }: { highlight: boolean }) {
             <button
               key={h.id}
               type="button"
-              className={`hotspot${highlight ? ' is-highlight' : ''}`}
+              className={`hotspot${h.action.type === 'examine' ? ' is-subtle' : highlight ? ' is-highlight' : ''}`}
               style={hotspotStyle(h.rect)}
               data-hotspot={h.id}
               aria-label={h.label}

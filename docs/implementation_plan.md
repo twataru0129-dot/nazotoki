@@ -2,13 +2,13 @@
 
 前提：`docs/asset_audit.md` の監査結果。各段階を「実装 → 検証 → 報告 → ユーザー承認」の順で進め、承認を得るまで次の段階に進みません。`main` へのマージと Pages での公開も、承認を得てから行います。
 
-## 素材の取り込み方針（第1段階の冒頭）
+## 素材の取り込み方針（決定済み。第1段階の冒頭で実施）
 
-- `materials/`（公開しない）に元のZIPの中身を置く。採用する素材だけを最適化して `public/` へ出力するスクリプト（`scripts/build-assets`）を用意します。
-- `public/assets/bg/*.webp`：背景をWebP化（1448×1086と、スマホ用の縮小版）。
-- `src/assets/svg/`：謎用のSVGをReactコンポーネントにする（文字はDOM）。
-- `public/audio/{bgm,ambient,sfx}/`：MP3 20個をフォルダ構成を保ってコピーし、`audioRegistry.ts` でマニフェストと照合するテストを用意。
-- `paintings_reference.png` と `clock_*_consistent.png` は取り込みません。
+- 元素材はリポジトリに入れない（ユーザーがバックアップとして管理）。`scripts/build-assets` に元素材フォルダのパスを引数で渡し、`docs/source_checksums.txt` で照合してから、採用する素材だけを `public/assets/` に出力する。
+- 画像：原寸1448×1086を保ち、sharp か cwebp でWebP化する（PSNR 40dB以上と目視確認）。SVGは補修後に `public/assets/svg/` へ置く。
+- 音声：20個を再エンコードせず、そのままコピーして `public/assets/audio/{bgm,ambient,sfx}/` に置く。`audioRegistry.ts` とマニフェストの照合テストを用意する。
+- 公開しない素材は `docs/asset_audit.md` §6.2 のとおり。
+- Viteの `base: '/nazotoki/'`。素材のURLは `import.meta.env.BASE_URL` を基準にする。
 
 ## 第1段階：起動できる土台と4方向の探索
 - Vite + React + TS、ESLint/Prettier、Vitest、Playwright の雛形。`base: '/nazotoki/'`（変更可）。

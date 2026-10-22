@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
-import { assetUrl } from '../../game/assets';
 import { BOOKS, SYMBOL_NAME, type BookId } from '../../game/logic';
 import { cardRevealed } from '../../game/state';
 import { useGame } from '../../game/store';
+import { BookArt } from '../art/BookArt';
 import { CardFront } from '../art/CardFace';
 import { useDrag } from '../useDrag';
 
@@ -24,6 +24,7 @@ function Sun() {
   );
 }
 
+// 読み上げ用の説明（画面には表示しない）
 const label = (b: BookId) => `${BOOKS[b].name}の本（左：${SYMBOL_NAME[BOOKS[b].left]}、右：${SYMBOL_NAME[BOOKS[b].right]}）`;
 
 export function BookshelfCloseup() {
@@ -69,18 +70,17 @@ export function BookshelfCloseup() {
                 onClick={() => tap(i)}
                 {...(books.solved ? {} : bind(i))}
               >
-                <img src={assetUrl(`svg/books/book_${b}.svg`)} alt="" draggable={false} />
+                <BookArt id={b} className="book-art" />
               </button>
-              <span className="book-caption" aria-hidden="true">
-                {SYMBOL_NAME[BOOKS[b].left]}・{SYMBOL_NAME[BOOKS[b].right]}
-              </span>
             </li>
           ))}
         </ol>
         <Sun />
       </div>
       {ghost && (
-        <img className="drag-ghost book-ghost" style={{ left: ghost.x, top: ghost.y }} src={assetUrl(`svg/books/book_${books.order[ghost.payload]}.svg`)} alt="" />
+        <span className="drag-ghost book-ghost" style={{ left: ghost.x, top: ghost.y }}>
+          <BookArt id={books.order[ghost.payload]} className="book-art" />
+        </span>
       )}
       {!books.solved && (
         <p className="op-help">{picked === null ? '本をタップして選び、入れ替えたい本をタップする（ドラッグでも入れ替えられる）。' : `${BOOKS[books.order[picked]].name}の本を選んでいる。入れ替える本をタップ。`}</p>

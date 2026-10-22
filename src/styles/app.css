@@ -1235,13 +1235,13 @@ summary:focus-visible {
   opacity: 0.35;
 }
 
-.book-caption {
-  font-size: 0.78rem;
-  color: var(--ivory-dim);
-  white-space: nowrap;
+.book-art {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
-.shelf.is-solved .book img {
+.shelf.is-solved .book-art {
   filter: drop-shadow(0 0 6px rgba(214, 187, 133, 0.6));
 }
 

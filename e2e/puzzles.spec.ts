@@ -251,3 +251,63 @@ test('壊れた保存データは読み込まず、警告を出す', async ({ pa
   await expect(page.getByRole('alert')).toContainText('正しく読み込めなかった');
   await expect(page.getByRole('button', { name: 'つづきから' })).toHaveCount(0);
 });
+
+test('本棚：絵柄は図形で表示し、答えになる漢字を画面に出さない。並べ替え・ドラッグ中も絵柄が本からずれない', async ({ page }) => {
+  const EXPECTED: Record<string, [string, string]> = {
+    blue: ['moon', 'wave'],
+    ivory: ['wave', 'leaf'],
+    black: ['leaf', 'star'],
+    green: ['star', 'sun'],
+  };
+  await newGame(page);
+  await open(page, 'north', 'bookshelf');
+
+  const check = async () => {
+    for (const [id, [l, r]] of Object.entries(EXPECTED)) {
+      const book = page.locator(`[data-book="${id}"]`);
+      const bb = (await book.boundingBox())!;
+      for (const [side, sym] of [['left', l], ['right', r]] as const) {
+        const g = book.locator(`[data-side="${side}"]`);
+        await expect(g).toHaveAttribute('data-symbol', sym);
+        const gb = (await g.boundingBox())!;
+        // 絵柄は本の中、左は左半分・右は右半分に収まる
+        expect(gb.width).toBeGreaterThan(8);
+        expect(gb.x).toBeGreaterThanOrEqual(bb.x);
+        expect(gb.x + gb.width).toBeLessThanOrEqual(bb.x + bb.width + 0.5);
+        const mid = bb.x + bb.width / 2;
+        if (side === 'left') expect(gb.x + gb.width / 2).toBeLessThan(mid);
+        else expect(gb.x + gb.width / 2).toBeGreaterThan(mid);
+      }
+    }
+  };
+
+  const visibleText = () => page.locator('.shelf').evaluate((el) => (el as HTMLElement).innerText);
+  const noKanji = async () => {
+    expect(await visibleText()).not.toMatch(/[月波葉星陽]/);
+    const help = await page.locator('.op-help').allInnerTexts();
+    for (const t of help) expect(t).not.toMatch(/[月波葉星陽]/);
+  };
+
+  await check();
+  await noKanji();
+  await page.locator('[data-book="blue"]').click();
+  await noKanji();
+  await page.locator('[data-book="green"]').click();
+  await check();
+  // ドラッグ途中（指を離す前）も、棚の本と絵柄の対応・位置は変わらない
+  const a = (await page.locator('[data-book="ivory"]').boundingBox())!;
+  const t = (await page.locator('[data-book="black"]').boundingBox())!;
+  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(a.x + a.width / 2 + 15, a.y + a.height / 2, { steps: 3 });
+  await page.mouse.move(t.x + t.width / 2, t.y + t.height / 2, { steps: 6 });
+  await expect(page.locator('.book-ghost [data-symbol]')).toHaveCount(2);
+  await check();
+  await page.mouse.up();
+  await check();
+  expect(await bookOrder(page)).toEqual(['blue', 'ivory', 'black', 'green']);
+  await expect(page.getByRole('button', { name: '記録カードAを取る' })).toBeVisible();
+  await noKanji();
+  // 読み上げ用の説明は内部に保持（画面には出ない）
+  await expect(page.locator('[data-book="blue"]')).toHaveAttribute('aria-label', /左：月、右：波/);
+});

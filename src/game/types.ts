@@ -40,7 +40,5 @@ export interface Hotspot {
 export interface SceneDef {
   facing: Facing;
   image: string;
-  /** 背景が未完成（仮素材）の場合の説明。null なら完成扱い */
-  provisional: string | null;
   hotspots: Hotspot[];
 }

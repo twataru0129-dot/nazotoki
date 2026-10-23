@@ -413,32 +413,6 @@ summary:focus-visible {
   box-shadow: 0 0 14px rgba(214, 187, 133, 0.6);
 }
 
-.provisional {
-  position: absolute;
-  left: 6px;
-  top: 6px;
-  max-width: 70%;
-  font-size: 0.8rem;
-  line-height: 1.5;
-  background: rgba(60, 20, 10, 0.82);
-  border: 1px dashed var(--danger);
-  border-radius: 6px;
-  color: #f3d8c8;
-}
-
-.provisional summary {
-  cursor: pointer;
-  padding: 4px 10px;
-  min-height: 32px;
-  display: flex;
-  align-items: center;
-}
-
-.provisional p {
-  margin: 0;
-  padding: 0 10px 8px;
-}
-
 .turn-row {
   display: flex;
   align-items: center;
@@ -1736,16 +1710,6 @@ summary:focus-visible {
   max-width: 24em;
   margin: 0 auto;
   background: rgba(23, 32, 31, 0.85);
-}
-
-.ending-placeholder {
-  min-height: 100dvh;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: 16px;
-  padding: 24px 16px;
-  background: #050707;
 }
 
 :root[data-reduced-motion='true'] .animate-open,

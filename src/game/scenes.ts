@@ -5,7 +5,6 @@ export const SCENES: Record<Facing, SceneDef> = {
   north: {
     facing: 'north',
     image: 'bg/a_north.webp',
-    provisional: '左端（西壁の北寄り）の絵と飾り棚が、西面の画像には写っていない（壁の継ぎ目の整合が未完）',
     hotspots: [
       { id: 'bookshelf', label: '本棚', rect: { x: 570, y: 190, w: 310, h: 145 }, action: { type: 'closeup', id: 'bookshelf' } },
       { id: 'desk', label: '机の引き出し', rect: { x: 240, y: 695, w: 990, h: 95 }, action: { type: 'closeup', id: 'desk' } },
@@ -28,7 +27,6 @@ export const SCENES: Record<Facing, SceneDef> = {
   east: {
     facing: 'east',
     image: 'bg/a_east.webp',
-    provisional: '生成画像を加工した背景（窓の外を雨の夜の敷地に、壁の版画を屋敷の外観に差し替え）',
     hotspots: [
       { id: 'clock', label: '柱時計', rect: { x: 345, y: 20, w: 240, h: 770 }, action: { type: 'closeup', id: 'clock' } },
       { id: 'window', label: '雨の窓', rect: { x: 1100, y: 15, w: 345, h: 630 }, action: { type: 'closeup', id: 'window' } },
@@ -37,7 +35,6 @@ export const SCENES: Record<Facing, SceneDef> = {
   south: {
     facing: 'south',
     image: 'bg/a_south_closed.webp',
-    provisional: '閉じた扉は開扉画像の扉板を変形して作成（細部が甘い）／左右の家具を壁・腰板・床に塗り替え',
     hotspots: [
       { id: 'door', label: '施錠された扉', rect: { x: 560, y: 108, w: 460, h: 738 }, action: { type: 'closeup', id: 'door' } },
       // 任意調査O5：右の戸枠の蝶番（上）
@@ -47,7 +44,6 @@ export const SCENES: Record<Facing, SceneDef> = {
   west: {
     facing: 'west',
     image: 'bg/a_west.webp',
-    provisional: '右端の窓を壁と腰板に加工した背景／額の中は謎用の正確な絵（SVG）で表示',
     hotspots: [
       { id: 'paintings', label: '4枚の絵画', rect: { x: 355, y: 95, w: 730, h: 550 }, action: { type: 'closeup', id: 'paintings' } },
     ],

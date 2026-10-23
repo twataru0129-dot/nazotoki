@@ -17,12 +17,15 @@ npm run test:e2e     # Playwright（ビルド済み dist を vite preview で検
 - 元素材（設計書・画像・音声のZIP）はリポジトリに含めない。別管理のバックアップを使う。
 - `npm run assets -- <元素材フォルダ>` で `public/assets/` を再生成する（`docs/source_checksums.txt` で照合）。
   背景の加工内容と画質は `docs/asset_build_report.md` に出力される。
-- 音声20ファイルは無変換でコピー。フォントは Noto Serif JP（SIL OFL 1.1、`public/assets/fonts/OFL.txt`）。
+- 音声20ファイルは再エンコードせず、タグ（作成者名・生成IDなどのメタデータ）だけを外して配置。元ファイルは元素材側で保持。
+- フォントは Noto Serif JP（SIL OFL 1.1、`public/assets/fonts/OFL.txt`）。
+- 素材の出自・利用条件・未完成の部分は `ASSET_PROVENANCE.md`。
 
 ## 公開（GitHub Pages）
 
 - `.github/workflows/deploy-pages.yml`：`main` に変更が入ったとき（または Actions 画面から手動）にビルドして公開。
   事前に Settings > Pages > Source を「GitHub Actions」に設定する。公開URL：https://twataru0129-dot.github.io/nazotoki/
+  ※ 2026-10-23 時点でリポジトリは非公開、Pages は未設定。非公開リポジトリで Pages を使うには GitHub の有料プランが必要（無料プランでは公開リポジトリのみ）。
 - `.github/workflows/ci.yml`：プルリクエストと作業ブランチで型検査・単体テスト・ビルド・E2E を実行（公開はしない）。
 
 ## 文書
@@ -36,4 +39,5 @@ npm run test:e2e     # Playwright（ビルド済み dist を vite preview で検
 - `docs/phase5_report.md` 第5段階の報告（エンディング・クリア画面・クリア後）
 - `docs/phase6_report.md` 第6段階の報告（総合テスト・最終修正・公開準備）
 - `docs/qa_checklist_final.md` ⑮QA受入チェックリストの最終照合
-- `docs/asset_licenses.md` 素材一覧と利用条件
+- `ASSET_PROVENANCE.md` 素材の出自・利用条件・未完成の部分
+- `docs/iphone_check.md` iPhone での公開前確認

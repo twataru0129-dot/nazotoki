@@ -54,5 +54,5 @@
 - ✅ Playwright等でカード4問各順序とクリアまで通しテスト（final.spec 総合）
 - ✅ ブラウザをリロードして404/白画面にならない（1ページ構成。全テストで404・コンソールエラーなしを確認）
 - ⏳ iPhone・iPad・PCで実機動作確認 → **実機は未実施**（Chromium で端末サイズ・タッチを模擬）
-- ⏳ 商用公開前にSuno・Runway生成音源の利用条件を確認 → **未確認**（docs/asset_licenses.md）
+- ⏳ 商用公開前にSuno・Runway生成音源の利用条件を確認 → **未確認**（ASSET_PROVENANCE.md）
 - ✅ GitHub mainの更新・公開はユーザーの承認後（未実施のまま）

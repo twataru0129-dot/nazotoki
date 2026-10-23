@@ -228,3 +228,16 @@ test('GitHub Pages の配下パス /nazotoki/ で素材URLが解決される', a
   const src = await page.locator('.title-bg').getAttribute('src');
   expect(src).toBe('/nazotoki/assets/bg/a_north.webp');
 });
+
+test('公開版の画面に開発用の表示（仮背景・仮素材など）が出ない', async ({ page }) => {
+  const dev = /仮背景|仮素材|開発用|ダミー|TODO|placeholder/i;
+  await page.goto('./');
+  await expect(page.locator('body')).not.toContainText(dev);
+  await page.getByRole('button', { name: 'はじめから' }).click();
+  await page.getByRole('button', { name: 'スキップ' }).click();
+  for (let i = 0; i < 4; i++) {
+    await expect(page.locator('body')).not.toContainText(dev);
+    await expect(page.locator('details, .provisional')).toHaveCount(0);
+    await page.getByRole('button', { name: '右を向く' }).click();
+  }
+});

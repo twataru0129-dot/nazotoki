@@ -34,7 +34,6 @@ export function SceneStage({ highlight }: { highlight: boolean }) {
   // 南：解錠後は開扉の画像（閉扉と同じベースから作ったもの）に切り替える。開く演出は第5段階
   const southOpen = state.facing === 'south' && p.door.unlocked;
   const image = southOpen ? 'bg/a_south_open.webp' : scene.image;
-  const provisional = southOpen ? '開いた扉は元画像（左右の壁・版画は閉扉と同じ加工）' : scene.provisional;
   const start = useRef<{ x: number; y: number; id: number } | null>(null);
   const swiped = useRef(false);
   const [dragDx, setDragDx] = useState(0);
@@ -140,12 +139,6 @@ export function SceneStage({ highlight }: { highlight: boolean }) {
             />
           ))}
         </div>
-        {provisional && (
-          <details className="provisional">
-            <summary>仮背景</summary>
-            <p>{provisional}</p>
-          </details>
-        )}
       </div>
     </div>
   );

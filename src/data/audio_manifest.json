@@ -14,7 +14,9 @@
       "size_bytes": 843356,
       "sample_rate_hz": 48000,
       "channels": 2,
-      "sha256": "4e40be04a10c3538f33773f3e7f05e3cd2fbcafe6346c3a5e47bb290dd5d8b7c"
+      "sha256": "4e40be04a10c3538f33773f3e7f05e3cd2fbcafe6346c3a5e47bb290dd5d8b7c",
+      "distributed_size_bytes": 819648,
+      "distributed_sha256": "ba66f5d528d7b6946ce9df7267bcb9dbfdb778830d2d5a3f740e8766cedacaef"
     },
     {
       "filename": "study.mp3",
@@ -27,7 +29,9 @@
       "size_bytes": 4670732,
       "sample_rate_hz": 48000,
       "channels": 2,
-      "sha256": "99aa0c725bc86320654738c50b50595019911e79310ce6479263ebdd263dd480"
+      "sha256": "99aa0c725bc86320654738c50b50595019911e79310ce6479263ebdd263dd480",
+      "distributed_size_bytes": 4670688,
+      "distributed_sha256": "6e660eecc53af0256007ebf1a8a9f5313ec898d7aea3639fdefe749da0350688"
     },
     {
       "filename": "title.mp3",
@@ -40,7 +44,9 @@
       "size_bytes": 3797184,
       "sample_rate_hz": 48000,
       "channels": 2,
-      "sha256": "b0c7c6896cc92da992f7b4cc8de6f23ae95399042b04f1fe97b2054a47ba6b90"
+      "sha256": "b0c7c6896cc92da992f7b4cc8de6f23ae95399042b04f1fe97b2054a47ba6b90",
+      "distributed_size_bytes": 3773856,
+      "distributed_sha256": "9bf5d7d8c298a9904913f8db0bd73d6176bd22179622332fed63935540b7619d"
     },
     {
       "filename": "old_house.mp3",
@@ -53,7 +59,9 @@
       "size_bytes": 160957,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "0bbcbc21835cc2ca646c8f28194fe32685b727e3e0c95cbca143ffb3d96f1bbf"
+      "sha256": "0bbcbc21835cc2ca646c8f28194fe32685b727e3e0c95cbca143ffb3d96f1bbf",
+      "distributed_size_bytes": 160913,
+      "distributed_sha256": "15f7ec308e9d0f37ff0164508ae137516cfc442bba94ce2db23ec310d55305f2"
     },
     {
       "filename": "rain_loop.mp3",
@@ -66,7 +74,9 @@
       "size_bytes": 321035,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "4eaa53932332cf92e2fef74985ec298af2c2fe739ffbc5da6e4f4155cb3e441a"
+      "sha256": "4eaa53932332cf92e2fef74985ec298af2c2fe739ffbc5da6e4f4155cb3e441a",
+      "distributed_size_bytes": 320991,
+      "distributed_sha256": "95de25bf026fedc9358b72d0b70c9599b1d63130a7d8c3b210359e69235a1d61"
     },
     {
       "filename": "book_move.mp3",
@@ -79,7 +89,9 @@
       "size_bytes": 24702,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "98194e7b633a7387ce154b1e387febf78ebbeb773ef0454a0473297dd9ae248f"
+      "sha256": "98194e7b633a7387ce154b1e387febf78ebbeb773ef0454a0473297dd9ae248f",
+      "distributed_size_bytes": 24658,
+      "distributed_sha256": "2e4c780c49ccddd8cfa3a14dbbbc7ba43993fed55a7be69858f5db335f9a97c8"
     },
     {
       "filename": "box_unlock.mp3",
@@ -92,7 +104,9 @@
       "size_bytes": 33061,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "73e087f3e36d1fb0729a862e210d1b4eeacc8bcdfa05c0ebe0db4686e8d67dcd"
+      "sha256": "73e087f3e36d1fb0729a862e210d1b4eeacc8bcdfa05c0ebe0db4686e8d67dcd",
+      "distributed_size_bytes": 33017,
+      "distributed_sha256": "0c2ee5c81115a61ef1c6246b3e1c620339225fe04ec15c3ad91466d2182d3ce1"
     },
     {
       "filename": "card_flip.mp3",
@@ -105,7 +119,9 @@
       "size_bytes": 33061,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "de85c61b26ecd1ee77d69b3d91d8fe17815afdd7eaeeacf11ead34847f647017"
+      "sha256": "de85c61b26ecd1ee77d69b3d91d8fe17815afdd7eaeeacf11ead34847f647017",
+      "distributed_size_bytes": 33017,
+      "distributed_sha256": "7aeecbaee244c22b365befc2b42f621f5eea121d39b6bcc4f197ef9cccf57262"
     },
     {
       "filename": "card_pickup.mp3",
@@ -118,7 +134,9 @@
       "size_bytes": 33061,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "5839e4155e1688c43bcf7c2c4bc966a18cca6feafa76775ec7232dc9f7bbfbc4"
+      "sha256": "5839e4155e1688c43bcf7c2c4bc966a18cca6feafa76775ec7232dc9f7bbfbc4",
+      "distributed_size_bytes": 33017,
+      "distributed_sha256": "6627503aa3f5de6760433f5f68ac0dfc5fec83484bb0a8bee1e86d809ad6342c"
     },
     {
       "filename": "clock_gear.mp3",
@@ -131,7 +149,9 @@
       "size_bytes": 48944,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "1f9f37cba9c8d79fa92ca4d61d70f90df0960eda3c298309d23c9b1f9baedf28"
+      "sha256": "1f9f37cba9c8d79fa92ca4d61d70f90df0960eda3c298309d23c9b1f9baedf28",
+      "distributed_size_bytes": 48900,
+      "distributed_sha256": "c57bba82cc2bf93d1c3c47db0b91d10de8c3e2efffab8fe3302f88bec7286aa6"
     },
     {
       "filename": "clock_reset.mp3",
@@ -144,7 +164,9 @@
       "size_bytes": 33061,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "265a0e3a891b29c8dd6424d932265f9c5e4c6ca71606bb05c2a7b79f467e498f"
+      "sha256": "265a0e3a891b29c8dd6424d932265f9c5e4c6ca71606bb05c2a7b79f467e498f",
+      "distributed_size_bytes": 33017,
+      "distributed_sha256": "08e3583859d1ca36392da611a1caf622fc91fd0e34b2d28e73b13a66b6f77f24"
     },
     {
       "filename": "door_mechanism.mp3",
@@ -157,7 +179,9 @@
       "size_bytes": 48944,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "bb0b757551838292536ad54ff615e7bc73667c54e796a08be4a06e35c7c4852e"
+      "sha256": "bb0b757551838292536ad54ff615e7bc73667c54e796a08be4a06e35c7c4852e",
+      "distributed_size_bytes": 48900,
+      "distributed_sha256": "12c95deb3dfe916b32c5e82a7ab347b50fd52d7efdc073e5e82d79d85d5ac090"
     },
     {
       "filename": "door_open.mp3",
@@ -170,7 +194,9 @@
       "size_bytes": 81127,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "66b12d8e6cd2be01ebc4ea477e8ce9d10802a7bb86b687de9aa31c41f72ab553"
+      "sha256": "66b12d8e6cd2be01ebc4ea477e8ce9d10802a7bb86b687de9aa31c41f72ab553",
+      "distributed_size_bytes": 81083,
+      "distributed_sha256": "ee382b831bfadb9b3f1e6234178e86fb6708e63e1f5007365cc03f8d4da43053"
     },
     {
       "filename": "door_unlock.mp3",
@@ -183,7 +209,9 @@
       "size_bytes": 48944,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "f41ca1fa0ea8263b1243d50d05b1ee942be69d34d87eead9d9d4fb387146307a"
+      "sha256": "f41ca1fa0ea8263b1243d50d05b1ee942be69d34d87eead9d9d4fb387146307a",
+      "distributed_size_bytes": 48900,
+      "distributed_sha256": "54fff39340dece1b2953dd86145f8085c715985d4d36727f16ce44649445bd5b"
     },
     {
       "filename": "drawer_open.mp3",
@@ -196,7 +224,9 @@
       "size_bytes": 33061,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "b204d8c85d2099ebba8a07370d835528316efbda00faf636ac42ecb8e2437805"
+      "sha256": "b204d8c85d2099ebba8a07370d835528316efbda00faf636ac42ecb8e2437805",
+      "distributed_size_bytes": 33017,
+      "distributed_sha256": "c37ef09fb252b243a0db82b9430ac94c0157a6d67d9084d620275c575411ef2f"
     },
     {
       "filename": "footsteps_hallway.mp3",
@@ -209,7 +239,9 @@
       "size_bytes": 81127,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "c35e21ff5f0fcbde3f7a7c05a5ea147e2b5fc8753caf2abe39801fadd062f7ef"
+      "sha256": "c35e21ff5f0fcbde3f7a7c05a5ea147e2b5fc8753caf2abe39801fadd062f7ef",
+      "distributed_size_bytes": 81083,
+      "distributed_sha256": "4d6a1cce8d7cae9cb8d61c7679022e34799447ef8ef3c68e6f66f9c96e8e44fa"
     },
     {
       "filename": "frame_move.mp3",
@@ -222,7 +254,9 @@
       "size_bytes": 33061,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "20fe0bed6cabed1c42db96a3bddd01df5a920d99d989890b2fee02b614000c59"
+      "sha256": "20fe0bed6cabed1c42db96a3bddd01df5a920d99d989890b2fee02b614000c59",
+      "distributed_size_bytes": 33017,
+      "distributed_sha256": "24db1f8685bc7b9832530ecc8067c08070fc189f1e4c6c8e68982ded6122d188"
     },
     {
       "filename": "mysterious_knock.mp3",
@@ -235,7 +269,9 @@
       "size_bytes": 33061,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "c2462c85867137e3d689b0d0796e94b5a71a64207293f55b036b0213216da09c"
+      "sha256": "c2462c85867137e3d689b0d0796e94b5a71a64207293f55b036b0213216da09c",
+      "distributed_size_bytes": 33017,
+      "distributed_sha256": "9a0b7f0f04ba62a2ba73c1649fda024e82aa5aa24a0f1be60fcd781b473c361e"
     },
     {
       "filename": "paper_turn.mp3",
@@ -248,7 +284,9 @@
       "size_bytes": 24702,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "babf30faaada0c5d83c024848fe89855841405a8a14fea141d59dbebdb31601c"
+      "sha256": "babf30faaada0c5d83c024848fe89855841405a8a14fea141d59dbebdb31601c",
+      "distributed_size_bytes": 24658,
+      "distributed_sha256": "aac2614a80931be6acc36ede2ea9999c45abf0c7d9950780353ae54ae54f76ab"
     },
     {
       "filename": "shelf_unlock.mp3",
@@ -261,7 +299,9 @@
       "size_bytes": 48944,
       "sample_rate_hz": 44100,
       "channels": 2,
-      "sha256": "e9bbd99bdb8f82b5a0fbae4ad2242224710c1af217a529690ab4ce4a4beb836c"
+      "sha256": "e9bbd99bdb8f82b5a0fbae4ad2242224710c1af217a529690ab4ce4a4beb836c",
+      "distributed_size_bytes": 48900,
+      "distributed_sha256": "117efd1bb084e70adc3f8549e7b5c2dcc2e7335fb90b90f7a3870216bb43feda"
     }
   ]
 }

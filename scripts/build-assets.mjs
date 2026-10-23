@@ -562,14 +562,33 @@ for (const p of ['A', 'B', 'C', 'D']) {
 }
 await out('svg/clock_face.svg', await source(`${P13}/clock/clock_face_no_hands.svg`));
 
-// ---------- 音声（再エンコードせずそのままコピー） ----------
+// ---------- 音声（再エンコードせず、タグだけを外して配置） ----------
+// 元ファイル（元素材フォルダ）はそのまま保持する。配布用は ID3v2／ID3v1／APE のタグを外し、
+// 作成者名・生成ID・URL・カバー画像・C2PA記録などを公開物に含めない。音声データ（フレーム）は1バイトも変えない。
+function stripTags(buf) {
+  let start = 0;
+  while (buf.length - start > 10 && buf.toString('latin1', start, start + 3) === 'ID3') {
+    const size = (buf[start + 6] << 21) | (buf[start + 7] << 14) | (buf[start + 8] << 7) | buf[start + 9];
+    start += 10 + size + (buf[start + 5] & 0x10 ? 10 : 0);
+  }
+  let end = buf.length;
+  if (end - start > 128 && buf.toString('latin1', end - 128, end - 125) === 'TAG') end -= 128;
+  if (end - start > 32 && buf.toString('latin1', end - 32, end - 24) === 'APETAGEX') end -= 32 + buf.readUInt32LE(end - 20);
+  // 先頭が MPEG フレームの同期ワードであること（タグの外し方を誤っていないか）
+  if (buf[start] !== 0xff || (buf[start + 1] & 0xe0) !== 0xe0) throw new Error('タグ除去後の先頭がMPEGフレームではありません');
+  return buf.subarray(start, end);
+}
 const manifest = JSON.parse((await source('audio/docs/audio_manifest.json')).toString('utf8'));
 if (manifest.assets.length !== 20) throw new Error('音声マニフェストが20件ではありません');
 for (const a of manifest.assets) {
   const buf = await source(`audio/${a.relative_path}`);
   if (createHash('sha256').update(buf).digest('hex') !== a.sha256) throw new Error(`音声ハッシュ不一致: ${a.relative_path}`);
+  const dist = stripTags(buf);
   await mkdir(path.join(OUT, 'audio', path.dirname(a.relative_path)), { recursive: true });
-  await copyFile(path.join(SRC, 'audio', a.relative_path), path.join(OUT, 'audio', a.relative_path));
+  await writeFile(path.join(OUT, 'audio', a.relative_path), dist);
+  // sha256・size_bytes は元ファイル、distributed_* は配布用（タグ除去後）
+  a.distributed_size_bytes = dist.length;
+  a.distributed_sha256 = createHash('sha256').update(dist).digest('hex');
 }
 await writeFile(path.join(ROOT, 'src/data/audio_manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 
@@ -581,7 +600,7 @@ const lines = [
   '|---|---|---|---|---|',
   ...report.map((r) => `| ${r.file} | ${r.quality} | ${r.psnr} | ${(r.bytes / 1024).toFixed(0)}KB | ${r.note} |`),
   '',
-  `音声: ${manifest.assets.length}ファイルを無変換でコピー（SHA-256照合済み）`,
+  `音声: ${manifest.assets.length}ファイル。元ファイルとSHA-256照合後、再エンコードせずタグ（ID3等）だけを外して配置`,
   '',
 ];
 await writeFile(path.join(ROOT, 'docs/asset_build_report.md'), lines.join('\n'));

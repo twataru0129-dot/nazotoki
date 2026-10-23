@@ -17,11 +17,24 @@ describe('音声（audio_manifest.json が正本）', () => {
     expect(defs.filter((d) => d.channel === 'sfx')).toHaveLength(15);
   });
 
-  it('public/assets/audio に無変換で配置されている（SHA-256一致）', () => {
+  it('public/assets/audio に配布用（タグ除去・再エンコードなし）が置かれている（SHA-256一致）', () => {
     for (const a of manifest.assets) {
       const file = pub(`audio/${a.relative_path}`);
       expect(existsSync(file), a.relative_path).toBe(true);
-      expect(createHash('sha256').update(readFileSync(file)).digest('hex'), a.relative_path).toBe(a.sha256);
+      expect(createHash('sha256').update(readFileSync(file)).digest('hex'), a.relative_path).toBe(a.distributed_sha256);
+    }
+  });
+
+  it('配布用の音声にタグ（作成者名・生成ID・カバー画像などのメタデータ）が残っていない', () => {
+    for (const a of manifest.assets) {
+      const b = readFileSync(pub(`audio/${a.relative_path}`));
+      expect(b.toString('latin1', 0, 3), a.relative_path).not.toBe('ID3');
+      expect(b.toString('latin1', b.length - 128, b.length - 125), a.relative_path).not.toBe('TAG');
+      expect(b.includes('APETAGEX'), a.relative_path).toBe(false);
+      expect(b.includes('suno.com'), a.relative_path).toBe(false);
+      expect(b.includes('c2pa'), a.relative_path).toBe(false);
+      // 先頭は MPEG フレーム
+      expect(b[0], a.relative_path).toBe(0xff);
     }
   });
 });

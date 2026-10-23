@@ -45,7 +45,5 @@ describe('4方向の配置（設計書§3）', () => {
     for (const f of FACINGS) expect(existsSync(publicFile(SCENES[f].image)), SCENES[f].image).toBe(true);
   });
 
-  it('仮背景にはすべて未修正点の説明が付いている（完成扱いにしない）', () => {
-    for (const f of FACINGS) expect(SCENES[f].provisional, f).toBeTruthy();
-  });
+  // 背景の未完成点はゲーム画面に出さず、ASSET_PROVENANCE.md の「未完成の部分」に記録する
 });

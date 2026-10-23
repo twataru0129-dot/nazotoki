@@ -5,7 +5,11 @@ import { AUDIO_CHANNELS, type AudioChannel, type Settings } from './settings';
 // 音声エンジン。
 // - 音量は Web Audio の GainNode（iOS Safari は HTMLMediaElement.volume を変えられないため）。
 //   系統（BGM・環境音・効果音）ごとの音量 × 素材ごとの補正（audioMix.ts）。
-// - BGM・雨音は2つの再生器を交互に使い、末尾の手前で次の周回と重ねてつなぐ（無音の継ぎ目を出さない）。
+// - 効果音・環境音（小さいファイル）は AudioBuffer に読み込んで鳴らす。AudioContext を一度ユーザー操作で
+//   有効にすれば、遅れて鳴らす音（物音・扉の連続音）も iOS Safari の自動再生制限に止められない。
+//   雨音はバッファのループ機能でつなぎ目なくループする。
+// - BGM（大きいファイル）は <audio> で流し、2つの再生器を交互に使って末尾の手前で次の周回と重ねる。
+//   iOS 対策として、最初のユーザー操作の中で全BGM再生器を一度再生・停止しておく（プライミング）。
 // - 最初のユーザー操作で有効化（自動再生制限）。タブが隠れたら止める。
 // - 音声は進行に必須ではない。失敗しても例外を外へ出さない。
 // - テスト用に、再生の記録（log）を window.__study0017Audio から読めるようにしている。
@@ -97,6 +101,20 @@ class LoopTrack {
     this.engine.record('stop', this.key);
   }
 
+  get voiceCount() {
+    return this.voices.filter(Boolean).length;
+  }
+
+  /** iOS：操作の中で両方の再生器を一度再生して止めておく（音は出さない：音量0） */
+  prime() {
+    for (const i of [0, 1]) {
+      const v = this.voice(i);
+      if (!v) continue;
+      const p = v.el.play();
+      if (p) void p.then(() => !(this.playing && this.active === i) && v.el.pause()).catch(() => undefined);
+    }
+  }
+
   /** テスト用：今鳴っている再生器 */
   get activeElement() {
     return this.voices[this.active]?.el ?? null;
@@ -109,6 +127,12 @@ export class AudioEngine {
   private sfx = new Map<string, Voice>();
   private loops = new Map<string, LoopTrack>();
   private oneShotBgm: Voice | null = null;
+  private revealVoice: Voice | null = null;
+  private buffers = new Map<string, AudioBuffer>();
+  private loading = new Map<string, Promise<AudioBuffer | null>>();
+  private activeSources = new Map<string, Set<{ src: AudioBufferSourceNode; gain: GainNode }>>();
+  private ambientLoop: { key: string; src: AudioBufferSourceNode; gain: GainNode } | null = null;
+  private primed = false;
   private wantedBgm: string | null = null;
   private wantedAmbient: { key: string; level: number } | null = null;
   private settings: Settings | null = null;
@@ -132,8 +156,11 @@ export class AudioEngine {
         }
         if (this.settings) this.applySettings(this.settings);
         document.addEventListener('visibilitychange', () => this.onVisibility());
+        // 効果音・環境音を先に読み込んでおく（小さいファイルのみ）
+        for (const [key, def] of Object.entries(SOUNDS)) if (def.channel !== 'bgm') void this.loadBuffer(key);
       }
       if (this.ctx.state === 'suspended' && document.visibilityState === 'visible') void this.ctx.resume();
+      this.primeBgm();
       this.sync();
     } catch {
       this.ctx = null;
@@ -142,6 +169,62 @@ export class AudioEngine {
 
   get unlocked(): boolean {
     return this.ctx !== null;
+  }
+
+  /** iOS：ユーザー操作の中で BGM 再生器を一度だけ再生→停止しておき、後から操作の外でも再生できるようにする */
+  private primeBgm() {
+    if (this.primed || !this.ctx) return;
+    this.primed = true;
+    for (const key of ['title', 'study']) {
+      const l = this.loop(key);
+      l.prime();
+    }
+    if (!this.revealVoice) this.revealVoice = this.makeVoice('reveal');
+    const v = this.revealVoice;
+    if (v) {
+      const p = v.el.play();
+      if (p) void p.then(() => this.oneShotBgm !== v && v.el.pause()).catch(() => undefined);
+    }
+  }
+
+  private loadBuffer(key: string): Promise<AudioBuffer | null> {
+    const hit = this.buffers.get(key);
+    if (hit) return Promise.resolve(hit);
+    let p = this.loading.get(key);
+    if (!p) {
+      const ctx = this.ctx;
+      p = (async () => {
+        try {
+          if (!ctx) return null;
+          const res = await fetch(soundUrl(key));
+          const data = await res.arrayBuffer();
+          const buf = await ctx.decodeAudioData(data);
+          this.buffers.set(key, buf);
+          return buf;
+        } catch {
+          return null;
+        }
+      })();
+      this.loading.set(key, p);
+    }
+    return p;
+  }
+
+  /** テスト用：AudioContext の状態（隠れている間は suspended） */
+  get contextState() {
+    return this.ctx?.state ?? 'none';
+  }
+
+  /** テスト用：作った <audio> 再生器の数（増え続けないことの確認） */
+  get voiceCount() {
+    let n = this.sfx.size + (this.revealVoice ? 1 : 0);
+    for (const l of this.loops.values()) n += l.voiceCount;
+    return n;
+  }
+
+  /** テスト用：読み込み済みバッファの数 */
+  get bufferCount() {
+    return this.buffers.size;
   }
 
   record(ev: LogEntry['ev'], key: string) {
@@ -206,21 +289,52 @@ export class AudioEngine {
     }
     this.lastSfxAt.set(key, now);
     if (key !== 'old_house') this.lastAnySfx = now;
-    let v = this.sfx.get(key);
-    if (!v) {
-      const made = this.makeVoice(key);
-      if (!made) return;
-      v = made;
-      this.sfx.set(key, v);
+    const buf = this.buffers.get(key);
+    const ctx = this.ctx;
+    const def = SOUNDS[key];
+    if (buf && def) {
+      // バッファ再生：毎回新しい再生ノード（終わると自動で破棄される）
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const gain = ctx.createGain();
+      gain.gain.value = dbToGain(MIX[key]?.gainDb ?? 0);
+      src.connect(gain).connect(this.channelGain.get(def.channel)!);
+      const set = this.activeSources.get(key) ?? new Set();
+      const entry = { src, gain };
+      set.add(entry);
+      this.activeSources.set(key, set);
+      src.onended = () => {
+        set.delete(entry);
+        src.disconnect();
+        gain.disconnect();
+      };
+      src.start();
+    } else {
+      // 読み込み前：<audio> で代わりに鳴らす
+      let v = this.sfx.get(key);
+      if (!v) {
+        const made = this.makeVoice(key);
+        if (!made) return;
+        v = made;
+        this.sfx.set(key, v);
+      }
+      v.gain.gain.cancelScheduledValues(ctx.currentTime);
+      v.gain.gain.value = dbToGain(MIX[key]?.gainDb ?? 0);
+      v.el.currentTime = 0;
+      void v.el.play().catch(() => undefined);
     }
-    v.gain.gain.cancelScheduledValues(this.ctx.currentTime);
-    v.gain.gain.value = dbToGain(MIX[key]?.gainDb ?? 0);
-    v.el.currentTime = 0;
-    void v.el.play().catch(() => undefined);
     this.record('play', key);
   }
 
   stopSfx(key: string, fade = 0.3) {
+    for (const e of this.activeSources.get(key) ?? []) {
+      this.ramp(e.gain, 0, fade);
+      try {
+        e.src.stop((this.ctx?.currentTime ?? 0) + fade + 0.05);
+      } catch {
+        /* 停止済み */
+      }
+    }
     const v = this.sfx.get(key);
     if (!v) return;
     this.ramp(v.gain, 0, fade);
@@ -293,8 +407,9 @@ export class AudioEngine {
     if (!key) return;
     if (MIX[key]?.loopEnd) this.loop(key).start(1, 1.2);
     else if (!this.oneShotBgm) {
-      // reveal：ループしない演出曲
-      const v = this.makeVoice(key);
+      // reveal：ループしない演出曲（再生器は使い回す。見返すたびに増やさない）
+      if (!this.revealVoice) this.revealVoice = this.makeVoice(key);
+      const v = this.revealVoice;
       if (!v) return;
       this.oneShotBgm = v;
       v.el.currentTime = 0;
@@ -304,10 +419,55 @@ export class AudioEngine {
     }
   }
 
+  /** 環境音（雨）：バッファのループ機能でつなぎ目なく鳴らす */
   private syncAmbient() {
-    if (!this.ctx) return;
-    for (const [k, l] of this.loops) if (SOUNDS[k]?.channel === 'ambient' && k !== this.wantedAmbient?.key) l.stop(0.8);
-    if (this.wantedAmbient) this.loop(this.wantedAmbient.key).start(this.wantedAmbient.level, 1.0);
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const want = this.wantedAmbient;
+    const cur = this.ambientLoop;
+    if (cur && cur.key !== want?.key) {
+      this.ramp(cur.gain, 0, 0.8);
+      const old = cur;
+      window.setTimeout(() => {
+        try {
+          old.src.stop();
+        } catch {
+          /* 停止済み */
+        }
+        old.src.disconnect();
+        old.gain.disconnect();
+      }, 900);
+      this.ambientLoop = null;
+      this.record('stop', cur.key);
+    }
+    if (!want) return;
+    const target = want.level * dbToGain(MIX[want.key]?.gainDb ?? 0);
+    if (this.ambientLoop) {
+      this.ramp(this.ambientLoop.gain, target, 0.6);
+      return;
+    }
+    const key = want.key;
+    void this.loadBuffer(key).then((buf) => {
+      if (!buf || this.ambientLoop || this.wantedAmbient?.key !== key || !this.ctx) return;
+      const src = this.ctx.createBufferSource();
+      src.buffer = buf;
+      src.loop = true;
+      src.loopStart = 0;
+      src.loopEnd = Math.min(buf.duration, MIX[key]?.loopEnd ?? buf.duration);
+      const gain = this.ctx.createGain();
+      gain.gain.value = 0;
+      src.connect(gain).connect(this.channelGain.get('ambient')!);
+      src.start();
+      this.ambientLoop = { key, src, gain };
+      this.ramp(gain, (this.wantedAmbient?.level ?? 1) * dbToGain(MIX[key]?.gainDb ?? 0), 1.0);
+      this.record('play', key);
+    });
+  }
+
+  /** テスト用：環境音ループの状態 */
+  ambientInfo() {
+    const a = this.ambientLoop;
+    return a ? { key: a.key, loop: a.src.loop, loopEnd: a.src.loopEnd } : null;
   }
 
   private sync() {

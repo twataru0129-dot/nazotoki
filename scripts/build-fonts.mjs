@@ -38,5 +38,6 @@ for (const [weight, file] of [
   console.log(`NotoSerifJP-${weight}.woff2: ${(subset.length / 1024).toFixed(0)}KB`);
 }
 await copyFile(path.join(FONT_DIR, 'LICENSE_FONT'), path.join(OUT, 'OFL.txt'));
-await writeFile(path.join(OUT, 'charset.txt'), text);
+// 収録した文字の一覧（テスト用。公開物には含めない）
+await writeFile(path.join(ROOT, 'src/data/font-charset.txt'), text);
 console.log(`${chars.size} 文字`);

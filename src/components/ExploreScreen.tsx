@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { assetUrl } from '../game/assets';
 import { audio } from '../game/audio';
 import { useGame } from '../game/store';
 import { FACING_LABEL } from '../game/types';
@@ -25,6 +26,18 @@ export function ExploreScreen() {
   }, [state.closeup, state.overlay, dispatch]);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
+
+  // 4方向の背景と扉の演出素材を、探索が始まってから先読みする（向きを変えた瞬間に読み込み待ちを出さない）
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      for (const f of ['bg/a_north.webp', 'bg/a_east.webp', 'bg/a_south_closed.webp', 'bg/a_west.webp', 'bg/a_south_open.webp']) {
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = assetUrl(f);
+      }
+    }, 600);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const showSpots = () => {
     setHighlight(true);

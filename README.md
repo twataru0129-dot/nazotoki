@@ -19,6 +19,12 @@ npm run test:e2e     # Playwright（ビルド済み dist を vite preview で検
   背景の加工内容と画質は `docs/asset_build_report.md` に出力される。
 - 音声20ファイルは無変換でコピー。フォントは Noto Serif JP（SIL OFL 1.1、`public/assets/fonts/OFL.txt`）。
 
+## 公開（GitHub Pages）
+
+- `.github/workflows/deploy-pages.yml`：`main` に変更が入ったとき（または Actions 画面から手動）にビルドして公開。
+  事前に Settings > Pages > Source を「GitHub Actions」に設定する。公開URL：https://twataru0129-dot.github.io/nazotoki/
+- `.github/workflows/ci.yml`：プルリクエストと作業ブランチで型検査・単体テスト・ビルド・E2E を実行（公開はしない）。
+
 ## 文書
 
 - `docs/asset_audit.md` 素材監査（第0段階）
@@ -28,3 +34,6 @@ npm run test:e2e     # Playwright（ビルド済み dist を vite preview で検
 - `docs/phase3_report.md` 第3段階の報告（任意調査・イベント・探索サポート・時間・セーブ・手帳）
 - `docs/phase4_report.md` 第4段階の報告（背景・音声20種・アニメーション・扉の演出）
 - `docs/phase5_report.md` 第5段階の報告（エンディング・クリア画面・クリア後）
+- `docs/phase6_report.md` 第6段階の報告（総合テスト・最終修正・公開準備）
+- `docs/qa_checklist_final.md` ⑮QA受入チェックリストの最終照合
+- `docs/asset_licenses.md` 素材一覧と利用条件

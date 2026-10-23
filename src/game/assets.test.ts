@@ -36,7 +36,7 @@ describe('文言とフォント', () => {
   });
 
   it('src で使う日本語の文字はすべて同梱フォントのサブセットに含まれる（npm run fonts 済み）', () => {
-    const charset = new Set(readFileSync(pub('fonts/charset.txt'), 'utf8'));
+    const charset = new Set(readFileSync(path.resolve(__dirname, '../data/font-charset.txt'), 'utf8'));
     const root = path.resolve(__dirname, '..');
     const files = (readdirSync(root, { recursive: true }) as string[]).filter((f) => /\.(tsx?|css)$/.test(f) && !f.includes('.test.'));
     const src = files.map((f) => readFileSync(path.join(root, f), 'utf8')).join('');

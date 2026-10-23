@@ -369,13 +369,7 @@ async function writeBackground(name, img, note) {
 }
 
 // ---------- SVG ----------
-const books = ['blue', 'ivory', 'black', 'green'];
-for (const b of books) {
-  let svg = (await source(`${P13}/books/book_${b}.svg`)).toString('utf8');
-  // 白（象牙）の本だけ記号色が背と同系色で読めないため、記号色を濃くする（形は変えない）
-  if (b === 'ivory') svg = svg.replaceAll('style="color:#F4D58C"', 'style="color:#5B4120"');
-  await out(`svg/books/book_${b}.svg`, Buffer.from(svg));
-}
+// 本棚の本は src/components/art/BookArt.tsx で⑬の本SVGと同じ図形を描くため、ここでは書き出さない
 for (const p of ['A', 'B', 'C', 'D']) {
   await out(`svg/paintings/painting_${p}.svg`, await source(`${P13}/paintings/painting_${p}.svg`));
   await out(`svg/cards/card_${p}_back.svg`, await source(`${P13}/cards/card_${p}_back.svg`));

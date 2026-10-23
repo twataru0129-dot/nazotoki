@@ -55,10 +55,12 @@ test('2 BGM：タイトル→探索で切り替わり（重ならない）、末
   await page.getByRole('button', { name: 'スキップ' }).click();
   await expect.poll(async () => (await audioLog(page)).map((e) => `${e.ev}:${e.key}`)).toEqual(expect.arrayContaining(['stop:title', 'play:study', 'play:rain_loop']));
   // ループ：末尾の2.5秒前へ進めると、無音になる前に次の周回が始まる
-  for (const key of ['study', 'rain_loop']) {
-    await page.evaluate((k) => (window as unknown as { __study0017Audio: { seekLoopNearEnd: (k: string, s: number) => void } }).__study0017Audio.seekLoopNearEnd(k, 2.5), key);
-    await expect.poll(async () => (await audioLog(page)).some((e) => e.ev === 'loop' && e.key === key), { timeout: 6000 }).toBe(true);
-  }
+  await page.evaluate(() => (window as unknown as { __study0017Audio: { seekLoopNearEnd: (k: string, s: number) => void } }).__study0017Audio.seekLoopNearEnd('study', 2.5));
+  await expect.poll(async () => (await audioLog(page)).some((e) => e.ev === 'loop' && e.key === 'study'), { timeout: 6000 }).toBe(true);
+  // 雨音はバッファのループ機能でつなぎ目なく繰り返す（ループ終点 20.0 秒）
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { __study0017Audio: { ambientInfo: () => unknown } }).__study0017Audio.ambientInfo()))
+    .toEqual({ key: 'rain_loop', loop: true, loopEnd: 20 });
   expect(await page.evaluate(() => (window as unknown as { __study0017Audio: { isLoopPlaying: (k: string) => boolean } }).__study0017Audio.isLoopPlaying('study'))).toBe(true);
   // タイトルに戻ると探索BGMは止まり、タイトルBGMのループもつながる
   await page.getByRole('button', { name: '設定', exact: true }).click();

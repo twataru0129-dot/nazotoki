@@ -246,6 +246,156 @@ async function replaceEastWindow(img) {
   }
 }
 
+// 壁の版画：生成画像の「西洋の大聖堂」を、旧・霧島邸の外観を描いたセピアの銅版画風に差し替える（自作SVG）
+function etchingSvg(W, H) {
+  const ink = '#2a2017';
+  const line = (x1, y1, x2, y2, w = 0.7, o = 1) => `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${ink}" stroke-width="${w}" opacity="${o}"/>`;
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="#e4d8bd"/>`;
+  const gy = H * 0.72; // 地面の線
+  // 空：横の細いハッチング（雲の部分は抜く）
+  for (let y = 4; y < gy - 10; y += 2.4) {
+    let x = rnd() * 12;
+    while (x < W) {
+      const len = 10 + rnd() * 50;
+      const cloud = Math.sin(x / 47 + y / 19) + Math.sin(x / 23 - y / 31) > 0.7;
+      if (!cloud) s += line(x, y, Math.min(W, x + len), y + (rnd() - 0.5), 0.6, 0.85 - (0.45 * y) / gy);
+      x += len + 3 + rnd() * 8;
+    }
+  }
+  // 屋敷の背後の木立（地平の低い帯）
+  for (let i = 0; i < 500; i++) {
+    const px = rnd() * W;
+    const py = gy - 4 - rnd() * H * 0.12 * (0.6 + 0.4 * Math.sin(px / 31));
+    s += `<path d="M${px.toFixed(1)} ${py.toFixed(1)} q2 -2.4 4 0" fill="none" stroke="${ink}" stroke-width="0.6" opacity=".5"/>`;
+  }
+  // 屋敷（中央）：左に塔、中央に破風、両翼に寄棟屋根
+  const cx = W * 0.5;
+  const bw = W * 0.62;
+  const bh = H * 0.26;
+  const bx = cx - bw / 2;
+  const by = gy - bh;
+  // 壁の縦ハッチ（日陰側を濃く）
+  s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#e4d8bd"/>`;
+  for (let x = bx; x < bx + bw; x += 1.6) s += line(x, by, x, gy, 0.5, x > cx + bw * 0.18 ? 0.7 : 0.35);
+  s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="none" stroke="${ink}" stroke-width="0.9"/>`;
+  // 屋根
+  const rh = bh * 0.55;
+  s += `<path d="M${bx - 4} ${by} L${bx + bw * 0.12} ${by - rh} L${bx + bw * 0.88} ${by - rh} L${bx + bw + 4} ${by} Z" fill="${ink}" opacity=".55"/>`;
+  for (let x = bx; x < bx + bw; x += 2.2) s += line(x, by, x + (x < cx ? 3 : -3), by - rh * 0.9, 0.35, 0.6);
+  // 軒下の影
+  s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh * 0.07}" fill="${ink}" opacity=".45"/>`;
+  // 中央の破風と玄関
+  s += `<path d="M${cx - bw * 0.14} ${by} L${cx} ${by - rh * 1.5} L${cx + bw * 0.14} ${by} Z" fill="#e4d8bd" stroke="${ink}" stroke-width="0.9"/>`;
+  s += `<circle cx="${cx}" cy="${by - rh * 0.55}" r="${rh * 0.22}" fill="none" stroke="${ink}" stroke-width="0.7"/>`;
+  s += `<rect x="${cx - bw * 0.06}" y="${gy - bh * 0.48}" width="${bw * 0.12}" height="${bh * 0.48}" fill="${ink}" opacity=".85"/>`;
+  // 塔
+  const tw = bw * 0.16;
+  const tx = bx + bw * 0.08;
+  const th = bh * 1.9;
+  s += `<rect x="${tx}" y="${gy - th}" width="${tw}" height="${th}" fill="#e4d8bd" stroke="${ink}" stroke-width="0.9"/>`;
+  for (let x = tx + tw * 0.55; x < tx + tw; x += 1.5) s += line(x, gy - th, x, gy, 0.4, 0.5);
+  s += `<path d="M${tx - 3} ${gy - th} L${tx + tw / 2} ${gy - th - tw * 1.3} L${tx + tw + 3} ${gy - th} Z" fill="${ink}" opacity=".75"/>`;
+  s += line(tx + tw / 2, gy - th - tw * 1.3, tx + tw / 2, gy - th - tw * 1.7, 0.8);
+  // 煙突
+  for (const fx of [0.62, 0.8]) s += `<rect x="${bx + bw * fx}" y="${by - rh * 1.05}" width="${bw * 0.03}" height="${rh * 0.5}" fill="${ink}" opacity=".8"/>`;
+  // 窓（縦長、2段）
+  const win = (x, y, w, h) => `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="${ink}" opacity=".8"/>`;
+  for (let i = 0; i < 9; i++) {
+    const x = bx + bw * (0.27 + i * 0.075);
+    if (Math.abs(x + bw * 0.015 - cx) < bw * 0.08) continue;
+    s += win(x, by + bh * 0.12, bw * 0.03, bh * 0.28) + win(x, by + bh * 0.56, bw * 0.03, bh * 0.3);
+  }
+  for (let k = 0; k < 3; k++) s += win(tx + tw * 0.32, gy - th + th * (0.12 + k * 0.28), tw * 0.36, th * 0.13);
+  // 両脇の庭木：短い曲線の集まり
+  const tree = (x, y, rx, ry) => {
+    let g = '';
+    // 形が丸くならないよう、ずらした小さな塊をいくつか重ねる
+    const lobes = Array.from({ length: 6 }, () => [x + (rnd() - 0.5) * rx * 1.1, y + (rnd() - 0.5) * ry * 1.1, 0.45 + rnd() * 0.4]);
+    for (let i = 0; i < 700; i++) {
+      const [lx, ly, lr] = lobes[i % lobes.length];
+      const a = rnd() * Math.PI * 2;
+      const r = Math.sqrt(rnd());
+      const px = lx + Math.cos(a) * rx * lr * r;
+      const py = ly + Math.sin(a) * ry * lr * r;
+      const dark = px > x ? 0.85 : 0.5;
+      g += `<path d="M${px.toFixed(1)} ${py.toFixed(1)} q2.5 -3 5 0" fill="none" stroke="${ink}" stroke-width="0.8" opacity="${dark}"/>`;
+    }
+    return g + line(x, y + ry * 0.6, x, gy + 2, 1.4, 0.9);
+  };
+  s += tree(W * 0.08, gy - H * 0.24, W * 0.13, H * 0.26) + tree(W * 0.93, gy - H * 0.2, W * 0.12, H * 0.24) + tree(W * 0.17, gy - H * 0.08, W * 0.07, H * 0.1) + tree(W * 0.84, gy - H * 0.06, W * 0.06, H * 0.08);
+  // 地面・小道
+  s += line(0, gy, W, gy, 0.8, 0.9);
+  for (let y = gy + 4; y < H - 6; y += 3.5) {
+    let x = rnd() * 20;
+    while (x < W) {
+      const len = 6 + rnd() * 26;
+      s += line(x, y, x + len, y, 0.6, 0.45 + ((y - gy) / (H - gy)) * 0.45);
+      x += len + 6 + rnd() * 14;
+    }
+  }
+  // 玄関へ続く小道（かすかな曲線）
+  s += `<path d="M${cx - 5} ${gy} Q${cx - W * 0.04} ${gy + (H - gy) * 0.5} ${cx - W * 0.12} ${H}" fill="none" stroke="${ink}" stroke-width="0.6" opacity=".6"/>`;
+  s += `<path d="M${cx + 5} ${gy} Q${cx + W * 0.03} ${gy + (H - gy) * 0.5} ${cx + W * 0.1} ${H}" fill="none" stroke="${ink}" stroke-width="0.6" opacity=".6"/>`;
+  // 版の縁
+  s += `<rect x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" fill="none" stroke="${ink}" stroke-width="1" opacity=".7"/>`;
+  return s + '</svg>';
+}
+
+// quad（左上・右上・右下・左下）の内側を版画で塗る。明るさと色味は元の画像のぼかしに合わせる
+async function replacePrint(img, quad) {
+  const xs = quad.map((p) => p[0]);
+  const ys = quad.map((p) => p[1]);
+  const bx = Math.floor(Math.min(...xs));
+  const by = Math.floor(Math.min(...ys));
+  const bw = Math.ceil(Math.max(...xs)) - bx;
+  const bh = Math.ceil(Math.max(...ys)) - by;
+  // 元の明るさ（照明のむら）
+  const region = await sharp(img.data, { raw: { width: img.w, height: img.h, channels: 4 } })
+    .extract({ left: bx, top: by, width: bw, height: bh })
+    .removeAlpha()
+    .raw()
+    .toBuffer();
+  const illum = await sharp(region, { raw: { width: bw, height: bh, channels: 3 } }).blur(Math.max(4, Math.min(bw, bh) / 5)).raw().toBuffer();
+  // 版画は2倍で描いて縮小（線を細かく）
+  const EW = Math.round(bw * 2);
+  const EH = Math.round(bh * 2);
+  const etch = await sharp(Buffer.from(etchingSvg(EW, EH))).removeAlpha().resize(bw * 2, bh * 2).blur(0.8).raw().toBuffer();
+  let meanE = 0;
+  for (let i = 0; i < etch.length; i++) meanE += etch[i];
+  meanE /= etch.length;
+  const map = homography(
+    quad,
+    [
+      [0, 0],
+      [EW, 0],
+      [EW, EH],
+      [0, EH],
+    ],
+  );
+  for (let y = by; y < by + bh; y++) {
+    for (let x = bx; x < bx + bw; x++) {
+      const [u, v] = map(x + 0.5, y + 0.5);
+      if (u < 0 || v < 0 || u >= EW || v >= EH) continue;
+      const ei = (Math.floor(v) * EW + Math.floor(u)) * 3;
+      const li = ((y - by) * bw + (x - bx)) * 3;
+      const o = idx(img, x, y);
+      const n = (rnd() - 0.5) * 4;
+      for (let c = 0; c < 3; c++) img.data[o + c] = Math.max(0, Math.min(255, Math.round((etch[ei + c] / meanE) * illum[li + c] + n)));
+    }
+  }
+}
+
+// a と b を x0〜x1 の範囲で横方向に混ぜる（x0 より左は a、x1 より右は b）
+function crossFadeX(img, a, b, x0, x1, y0 = 0, y1 = img.h) {
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < img.w; x++) {
+      const t = x >= x1 ? 1 : (x - x0) / (x1 - x0);
+      const o = idx(img, x, y);
+      for (let c = 0; c < 3; c++) img.data[o + c] = Math.round(a.data[o + c] * (1 - t) + b.data[o + c] * t);
+    }
+  }
+}
+
 // ---------- 書き出し ----------
 const report = [];
 
@@ -296,7 +446,10 @@ async function writeBackground(name, img, note) {
 {
   const img = await load(`${P13}/backgrounds/study_A_east_concept.png`);
   await replaceEastWindow(img);
-  await writeBackground('a_east', img, '仮：窓外を加工（敷地の夜景）。壁の版画は元画像のまま');
+  // 壁の版画（西洋の大聖堂）を、屋敷の外観の銅版画に差し替える
+  await replacePrint(img, [[664, 139], [857, 127], [858, 294], [665, 301]]);
+  await replacePrint(img, [[705, 385], [765, 385], [765, 442], [705, 442]]);
+  await writeBackground('a_east', img, '加工：窓外を敷地の夜景に、壁の版画を屋敷の外観（自作SVG）に差し替え');
 }
 
 // 南：開扉（元）と閉扉（扉板を射影変換して戸枠に戻す）を同じベースから作る
@@ -304,7 +457,36 @@ async function writeBackground(name, img, note) {
   const base = await load(`${P13}/backgrounds/study_A_south_open_concept.png`);
   // 南を向いた左手は東壁。描き込まれた本棚を、扉脇の壁と腰板で塗り替える
   rowFill(base, { x0: 448, y0: 0, x1: 474, y1: 612 }, { x0: 0, y0: 0, x1: 306, y1: 612 });
-  sideShade(base, { left: 360, right: 420, strength: 0.55 });
+  // 左の壁の版画（西洋の大聖堂）を屋敷の外観の版画に
+  await replacePrint(base, [[356, 185], [428, 185], [428, 271], [356, 271]]);
+  await replacePrint(base, [[362, 342], [428, 342], [428, 431], [362, 431]]);
+  // 右手は西壁。北面にあるはずの机・椅子・ランプ（と外套掛け）を消し、壁・腰板・床に戻す
+  {
+    const keep = clone(base);
+    // 壁：外套掛けの左の無地の壁の色で塗る（額縁の部分は残す）
+    const wall = clone(base);
+    rowFill(wall, { x0: 1098, y0: 0, x1: 1116, y1: 545 }, { x0: 1100, y0: 0, x1: BG_W, y1: 545 });
+    // 額縁（左辺 x 1340、上辺は右へ上がる斜め、下辺 y 366）の外側だけを壁にする
+    for (let y = 0; y < 545; y++) {
+      for (let x = 1100; x < BG_W; x++) {
+        const inFrame = x >= 1338 && y < 366 && y > 98 - (x - 1340) * 0.57;
+        if (!inFrame) wall.data.copy(base.data, idx(base, x, y), idx(wall, x, y), idx(wall, x, y) + 4);
+      }
+    }
+    // 腰板：笠木から幅木まで。扉脇の腰板の行ごとの色で塗る
+    rowFill(base, { x0: 1097, y0: 545, x1: 1108, y1: 800 }, { x0: 1100, y0: 545, x1: BG_W, y1: 800 });
+    rowFill(base, { x0: 1097, y0: 770, x1: 1108, y1: 800 }, { x0: 1100, y0: 800, x1: BG_W, y1: 846 });
+    // 戸枠の右の台座（椅子に隠れていた下端）は、左の台座を左右反転して補う
+    for (let y = 790; y < 848; y++) {
+      for (let x = 1022; x < 1100; x++) keep.data.copy(base.data, idx(base, x, y), idx(keep, 1580 - x, y), idx(keep, 1580 - x, y) + 4);
+    }
+    // 床：寄木の帯は扉の下の寄木を並べ、絨毯は扉の右下を中心に左右反転して続ける
+    tileCopy(base, { x0: 800, y0: 888, x1: 1000, y1: 926 }, { x0: 1005, y0: 848, x1: BG_W, y1: 926 });
+    for (let y = 926; y < BG_H; y++) {
+      for (let x = 1005; x < BG_W; x++) keep.data.copy(base.data, idx(base, x, y), idx(keep, 2010 - x, y), idx(keep, 2010 - x, y) + 4);
+    }
+  }
+  sideShade(base, { left: 360, right: 460, strength: 0.6 });
 
   const closed = clone(base);
   warpQuadToRect(
@@ -321,7 +503,7 @@ async function writeBackground(name, img, note) {
   stretchCopy(closed, { x0: 562, y0: 62, x1: 710, y1: 108 }, { x0: 710, y0: 62, x1: 1024, y1: 108 });
   tileCopy(closed, { x0: 712, y0: 890, x1: 1022, y1: 930 }, { x0: 712, y0: 846, x1: 1022, y1: 886 }, { flop: false });
 
-  await writeBackground('a_south_closed', closed, '仮：閉扉は開扉画像の扉板を射影変換。左右の壁は塗り替え・減光の仮処置');
+  await writeBackground('a_south_closed', closed, '仮：閉扉は開扉画像の扉板を射影変換。左の本棚・右の机と椅子を壁・腰板・床に塗り替え、版画を差し替え');
   await writeBackground('a_south_open', base, '仮：開扉（閉扉と同じベース）');
 
   // 扉の演出用：戸枠ごとの扉（暗闇に浮かぶ扉）と、開く扉板だけを、閉扉と同じ画像から切り出す
@@ -363,9 +545,13 @@ async function writeBackground(name, img, note) {
 // 西：絵画4枚。北壁側（右端）の窓とカーテンを壁と腰板に塗り替える。額内はゲーム側でSVGを重ねる
 {
   const img = await load(`${EXTRA}/西面の絵画参考.png`);
-  tileCopy(img, { x0: 1092, y0: 0, x1: 1160, y1: 688 }, { x0: 1225, y0: 0, x1: BG_W, y1: 688 });
-  tileCopy(img, { x0: 942, y0: 688, x1: 1165, y1: 1004 }, { x0: 1225, y0: 688, x1: BG_W, y1: 1004 }, { flop: false });
-  await writeBackground('a_west', img, '仮：窓を壁に加工。額内の生成絵は謎用SVGで覆う');
+  const orig = clone(img);
+  tileCopy(img, { x0: 1092, y0: 0, x1: 1160, y1: 688 }, { x0: 1160, y0: 0, x1: BG_W, y1: 688 });
+  tileCopy(img, { x0: 942, y0: 688, x1: 1165, y1: 1004 }, { x0: 1165, y0: 688, x1: BG_W, y1: 1004 }, { flop: false });
+  // 継ぎ目：窓の手前（x 1160〜1222）で元の壁と混ぜ、右へ行くほど壁の角に向かって暗くする
+  crossFadeX(img, orig, clone(img), 1160, 1222, 0, 1004);
+  sideShade(img, { right: 300, strength: 0.5 });
+  await writeBackground('a_west', img, '加工：右端の窓を壁と腰板に（継ぎ目をなじませ、角へ向けて減光）。額内は謎用SVGで覆う');
 }
 
 // ---------- SVG ----------

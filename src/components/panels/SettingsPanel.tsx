@@ -61,6 +61,17 @@ export function SettingsPanel() {
 
       <p className="description small">設定はこの端末のブラウザに保存される。ブラウザのデータを消去したり、プライベートモードで遊んだりすると保存されないことがある。</p>
 
+      <fieldset className="credits">
+        <legend>クレジット</legend>
+        <p className="description small">
+          音楽（BGM）：Suno で生成
+          <br />
+          効果音・環境音：Runway で生成
+          <br />
+          フォント：Noto Serif JP（SIL Open Font License 1.1）
+        </p>
+      </fieldset>
+
       {state.screen === 'explore' &&
         (confirmTitle ? (
           <div className="confirm">

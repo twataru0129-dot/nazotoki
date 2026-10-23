@@ -77,12 +77,12 @@ test('3 効果音の発生タイミング（謎・カード・物音・解錠・
   await open(page, 'north', 'bookshelf');
   await page.locator('[data-book="green"]').click();
   await page.locator('[data-book="blue"]').click();
-  expect(await plays(page)).toContain('book_move');
+  // 効果音は出来事の直後（setTimeout 0）に鳴るため、少し待って確かめる
+  await expect.poll(() => plays(page), { timeout: 2000 }).toContain('book_move');
   await back(page);
   await SOLVERS.A(page);
   await SOLVERS.B(page);
-  const p1 = await plays(page);
-  expect(p1).toEqual(expect.arrayContaining(['shelf_unlock', 'card_pickup', 'frame_move']));
+  await expect.poll(() => plays(page), { timeout: 2000 }).toEqual(expect.arrayContaining(['shelf_unlock', 'card_pickup', 'frame_move']));
   // 2枚目：取得音の約1.6秒後に物音（一度だけ）
   await expect.poll(async () => (await plays(page)).filter((k) => k === 'mysterious_knock').length, { timeout: 4000 }).toBe(1);
   const log = await audioLog(page);
@@ -114,7 +114,7 @@ test('3 効果音の発生タイミング（謎・カード・物音・解錠・
   expect(studyStop.t).toBeLessThan(open1.t);
   expect(steps.t - open1.t).toBeGreaterThan(4000);
   await expect(page.getByTestId('ending')).toBeVisible({ timeout: 6000 }); // 第5段階：ラストシーンへ
-  expect(await plays(page)).toContain('reveal');
+  await expect.poll(() => plays(page), { timeout: 2000 }).toContain('reveal');
 });
 
 test('4 ミュート・音量変更が系統ごとに反映される', async ({ page }) => {

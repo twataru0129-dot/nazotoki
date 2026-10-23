@@ -2,6 +2,7 @@ import { EndingScreen } from './components/EndingScreen';
 import { ExploreScreen } from './components/ExploreScreen';
 import { OpeningScreen } from './components/OpeningScreen';
 import { CardToast } from './components/CardToast';
+import { ClearScreen } from './components/ClearScreen';
 import { OverlayHost } from './components/OverlayHost';
 import { TitleScreen } from './components/TitleScreen';
 import { useGame } from './game/store';
@@ -15,7 +16,8 @@ export function App() {
         {state.screen === 'title' && <TitleScreen />}
         {state.screen === 'opening' && <OpeningScreen />}
         {state.screen === 'explore' && <ExploreScreen />}
-        {state.screen === 'ending' && <EndingScreen />}
+        {state.screen === 'ending' && <EndingScreen key={state.endingReplay ? 'replay' : 'first'} />}
+        {state.screen === 'clear' && <ClearScreen />}
       </div>
       <OverlayHost />
       {state.screen === 'explore' && <CardToast />}

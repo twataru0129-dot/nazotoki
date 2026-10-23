@@ -14,7 +14,7 @@ export const MIX: Record<string, MixEntry> = {
   // BGM（平均 -17〜-20dB → -20dB 付近へ）
   title: { gainDb: -0.9, loopEnd: 178.85, crossfade: 2.0 },
   study: { gainDb: -2.6, loopEnd: 206.05, crossfade: 2.0 },
-  reveal: { gainDb: 0 },
+  reveal: { gainDb: -4 }, // 通路の足音と独白の邪魔をしないよう控えめに
   // 環境音
   rain_loop: { gainDb: 14, loopEnd: 20.0, crossfade: 0.6 }, // 平均 -53.9dB と非常に小さいため持ち上げる
   old_house: { gainDb: -6.6 },

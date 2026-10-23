@@ -2,7 +2,7 @@ export type Facing = 'north' | 'east' | 'south' | 'west';
 export const FACINGS: Facing[] = ['north', 'east', 'south', 'west'];
 export const FACING_LABEL: Record<Facing, string> = { north: '北', east: '東', south: '南', west: '西' };
 
-export type Screen = 'title' | 'opening' | 'explore' | 'ending';
+export type Screen = 'title' | 'opening' | 'explore' | 'ending' | 'clear';
 
 /** 拡大調査画面。謎の操作は第2段階で各画面に追加する */
 export type CloseupId = 'bookshelf' | 'paintings' | 'desk' | 'clock' | 'door' | 'window';

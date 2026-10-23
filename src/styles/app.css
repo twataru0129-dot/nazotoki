@@ -2336,3 +2336,183 @@ summary:focus-visible {
   aspect-ratio: 1448 / 1086;
   overflow: hidden;
 }
+
+/* ================= 第5段階：エンディング・クリア ================= */
+.ending {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: #000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.ending .skip-btn {
+  z-index: 5;
+}
+
+.ending-stage {
+  position: relative;
+  width: min(100vw, calc(100dvh * 1448 / 1086));
+  aspect-ratio: 1448 / 1086;
+  overflow: hidden;
+}
+
+.ending-layer {
+  position: absolute;
+  inset: 0;
+  will-change: transform, opacity;
+}
+
+.fill-view {
+  position: absolute;
+  inset: 0;
+}
+
+.far-door-glow {
+  position: absolute;
+  left: 42%;
+  width: 16%;
+  top: 62%;
+  height: 8%;
+  background: radial-gradient(ellipse at 50% 40%, rgba(255, 196, 120, 0.9), rgba(255, 160, 80, 0) 70%);
+  mix-blend-mode: screen;
+}
+
+.far-door-light {
+  position: absolute;
+  left: 43%;
+  width: 14%;
+  top: 22%;
+  height: 44%;
+  background: linear-gradient(rgba(255, 236, 200, 0.95), rgba(255, 196, 120, 0.9));
+  box-shadow: 0 0 60px 30px rgba(255, 200, 130, 0.6);
+  transform-origin: 50% 50%;
+}
+
+.ending-black {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+}
+
+.ending-sub {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: max(28px, env(safe-area-inset-bottom));
+  margin: 0 auto;
+  max-width: 34em;
+  min-height: 2.4em;
+  text-align: center;
+  font-size: clamp(1.05rem, 4.4vw, 1.35rem);
+  line-height: 1.6;
+  color: #fff8ea;
+  text-shadow: 0 0 6px #000, 0 2px 4px #000;
+  z-index: 4;
+}
+
+.ending-card {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: 10px;
+  z-index: 3;
+  padding: 16px;
+}
+
+.ending-title {
+  margin: 0;
+  font-size: clamp(1.4rem, 6vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.ending-chapter {
+  margin: 0;
+  color: var(--gold-2);
+  font-size: clamp(1.1rem, 4.5vw, 1.5rem);
+  letter-spacing: 0.3em;
+}
+
+.ending-tag {
+  margin: 12px 0 0;
+  color: var(--ivory-dim);
+}
+
+.ending-next {
+  position: absolute;
+  bottom: max(90px, calc(env(safe-area-inset-bottom) + 70px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
+.ending.is-paused::after {
+  content: '一時停止中';
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  color: var(--ivory-dim);
+  font-size: 0.85rem;
+}
+
+.clear-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+  padding: 32px 16px;
+  background: radial-gradient(ellipse at 50% 30%, #22302e, var(--green) 70%);
+}
+
+.clear-title {
+  font-size: clamp(1.8rem, 8vw, 2.6rem);
+  margin: 0.2em 0;
+}
+
+.clear-stats {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  width: min(320px, 90vw);
+}
+
+.clear-stats div {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--green-3);
+  padding: 6px 4px;
+}
+
+.clear-stats dt {
+  color: var(--ivory-dim);
+}
+
+.clear-stats dd {
+  margin: 0;
+  color: var(--gold-2);
+  font-weight: 700;
+}
+
+.badge-inline {
+  display: block;
+  font-size: 0.8rem;
+}
+
+.clear-menu button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.record.important {
+  display: grid;
+  gap: 4px;
+  border-color: var(--gold-2);
+  margin: 8px 0;
+}

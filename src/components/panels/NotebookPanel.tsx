@@ -75,6 +75,13 @@ export function NotebookPanel() {
                 </button>
               </div>
             </div>
+            {p.chapterCompleted && (
+              // 第1章の最後に見たもの。真相は書かない
+              <div className="record important" data-testid="record-other-study">
+                <span className="note-title">もう一つの書斎</span>
+                <span>扉の先の通路を抜けると、最初の書斎とほとんど同じ部屋があった。柱時計は0時14分を指していた。</span>
+              </div>
+            )}
             <ol className="record-list" data-testid="record-list">
               {found.map((id) => (
                 <li key={id} className="record" data-card={id}>

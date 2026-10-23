@@ -42,6 +42,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   // 実プレイ時間：探索中かつ画面が表示されている間だけ1秒ずつ数える（タブ非表示・端末ロック中は数えない）
   const playing = state.screen === 'explore' || state.screen === 'ending';
+  const saving = playing || state.screen === 'clear';
   useEffect(() => {
     if (!playing) return;
     const id = window.setInterval(() => {
@@ -58,7 +59,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const lastAt = useRef(0);
   const save = useCallback((force: boolean) => {
     const s = latest.current;
-    if (s.screen !== 'explore' && s.screen !== 'ending') return;
+    if (s.screen !== 'explore' && s.screen !== 'ending' && s.screen !== 'clear') return;
     // 時間（毎秒変わる）を除いた部分で「意味のある変化」かを判定する
     const { playSeconds: _p, afterClearSeconds: _a, ...rest } = s.progress;
     const sig = JSON.stringify([s.facing, s.closeup, rest]);
@@ -70,8 +71,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setSaveFailed(!ok);
   }, []);
   useEffect(() => {
-    if (playing) save(false);
-  }, [playing, state.facing, state.closeup, state.progress, save]);
+    if (saving) save(false);
+  }, [saving, state.facing, state.closeup, state.progress, save]);
   // タブを隠す・ページを閉じる直前にも保存
   useEffect(() => {
     const flush = () => save(true);
@@ -95,8 +96,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (state.screen === 'explore') {
       audio.setBgm('study');
       audio.setAmbient('rain_loop', state.closeup === 'window' ? 1.6 : 1);
-    } else if (state.screen === 'ending') {
-      // 扉の演出と演出曲は EndingScreen 側で制御する
+    } else if (state.screen === 'ending' || state.screen === 'clear') {
+      // 扉の演出・エンディングの音は EndingScreen 側で制御する。クリア画面は静かに
+      if (state.screen === 'clear') {
+        audio.setBgm(null, 1.5);
+        audio.setAmbient(null);
+      }
     } else {
       audio.setBgm('title');
       audio.setAmbient(null);

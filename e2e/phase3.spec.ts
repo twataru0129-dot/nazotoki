@@ -233,5 +233,5 @@ test('旧い版（v1）の保存データを移行して再開できる', async 
   await expect(page.getByText('記録カード　1 / 4')).toBeVisible();
   await closeModal(page);
   await face(page, 'north');
-  expect((await saved(page)).saveVersion).toBe(2);
+  expect((await saved(page)).saveVersion).toBe(3);
 });

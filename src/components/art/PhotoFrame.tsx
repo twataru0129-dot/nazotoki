@@ -1,5 +1,5 @@
 // 机の上に立てた写真立て（探索画面用の小さな絵）。
-// 書斎Aは2人、書斎Bは「Aにはいないもう1人」を加えた3人（設計書§2.3。真相は語らない）。
+// 書斎Aは1人。書斎Bには「Aにはいないもう1人」も写っている（設計書§2.3。真相は語らない）。
 export function PhotoFrame({ room, className }: { room: 'A' | 'B'; className?: string }) {
   return (
     <svg className={className} viewBox="0 0 60 52" aria-hidden="true" data-photo={room}>
@@ -8,10 +8,8 @@ export function PhotoFrame({ room, className }: { room: 'A' | 'B'; className?: s
       <rect x="7" y="7" width="46" height="32" fill="#bfa47a" />
       <path d="M10 26 L22 18 L34 26 V36 H10 Z" fill="#6b5538" opacity=".5" />
       <g fill="#3d2f1f" opacity=".85">
-        <circle cx="20" cy="25" r="2.6" />
-        <path d="M16 39 Q17 29 20 28 Q23 29 24 39 Z" />
-        <circle cx="30" cy="24.5" r="2.8" />
-        <path d="M26 39 Q27 28 30 27.5 Q33 28 34 39 Z" />
+        <circle cx="24" cy="24.5" r="2.8" />
+        <path d="M20 39 Q21 28 24 27.5 Q27 28 28 39 Z" />
         {room === 'B' && (
           <>
             <circle cx="42" cy="24" r="2.8" />

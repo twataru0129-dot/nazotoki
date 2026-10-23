@@ -111,7 +111,7 @@ test('3 効果音の発生タイミング（謎・カード・物音・解錠・
   const steps = e.find((x) => x.key === 'footsteps_hallway')!;
   expect(studyStop.t).toBeLessThan(open1.t);
   expect(steps.t - open1.t).toBeGreaterThan(4000);
-  await expect(page.getByText('扉の向こうには、暗い通路が続いている。')).toBeVisible({ timeout: 6000 });
+  await expect(page.getByTestId('ending')).toBeVisible({ timeout: 6000 }); // 第5段階：ラストシーンへ
   expect(await plays(page)).toContain('reveal');
 });
 
@@ -185,15 +185,14 @@ test('6・7 正解演出は一度だけ。演出の途中で再読み込みし�
   await expect(page.getByTestId('closeup-door')).toBeVisible(); // 自動で閉じる演出も繰り返さない
   await back(page);
   await expect(page.getByRole('button', { name: '先へ進む' })).toBeVisible();
-  // 扉の演出の途中で再読み込み → 探索（南・解錠済み）から再開でき、もう一度見られる
+  // 扉の演出の途中で再読み込み → エンディングの冒頭（扉の演出）から再開する（第5段階の仕様）
   await page.getByRole('button', { name: '先へ進む' }).click();
   await page.waitForTimeout(3000);
   await page.reload();
   await page.getByRole('button', { name: 'つづきから' }).click();
-  await expect(page.getByRole('button', { name: '先へ進む' })).toBeVisible();
-  await page.getByRole('button', { name: '先へ進む' }).click();
+  await expect(page.getByTestId('door-transition')).toBeVisible();
   await page.getByRole('button', { name: 'スキップ' }).click();
-  await expect(page.getByText('扉の向こうには、暗い通路が続いている。')).toBeVisible();
+  await expect(page.getByTestId('clear-screen')).toBeVisible();
 });
 
 test('動きを減らす設定：解錠と扉の演出が短くなり、カード獲得の飛び出しを出さない', async ({ page }) => {
@@ -205,7 +204,7 @@ test('動きを減らす設定：解錠と扉の演出が短くなり、カー�
   await expect(page.locator('.closeup')).toHaveCount(0, { timeout: 3000 });
   await page.getByRole('button', { name: '先へ進む' }).click();
   await expect(page.locator('.door-transition.is-reduced')).toBeVisible();
-  await expect(page.getByText('扉の向こうには、暗い通路が続いている。')).toBeVisible({ timeout: 6000 });
+  await expect(page.getByTestId('ending')).toBeVisible({ timeout: 6000 });
 });
 
 test('8 スマホ縦：扉の演出・解錠画面で重要なボタンが画面内にあり、44px以上', async ({ page }) => {
@@ -239,6 +238,6 @@ test('9 音声が使えない環境でも最後まで進められる', async ({ 
   await expect(page.locator('.closeup')).toHaveCount(0, { timeout: 8000 });
   await page.getByRole('button', { name: '先へ進む' }).click();
   await page.getByRole('button', { name: 'スキップ' }).click();
-  await expect(page.getByText('扉の向こうには、暗い通路が続いている。')).toBeVisible();
+  await expect(page.getByTestId('clear-screen')).toBeVisible();
   expect(await plays(page)).toEqual([]);
 });

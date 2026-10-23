@@ -46,6 +46,11 @@ export function ExploreScreen() {
         <h1 className="place">
           書斎A<span className="place-dir" data-testid="facing-label">{FACING_LABEL[state.facing]}</span>
         </h1>
+        {state.progress.chapterCompleted && (
+          <button type="button" className="ghost-btn small" onClick={() => dispatch({ type: 'showClear' })}>
+            クリア画面
+          </button>
+        )}
         <button type="button" className="icon-btn" onClick={showSpots} aria-label="調べられる場所を光らせる">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z" fill="none" stroke="currentColor" strokeWidth="1.8" />

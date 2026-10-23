@@ -6,17 +6,17 @@ import { NorthDecor, RoomView } from './SceneDecor';
 const wrap = (ui: ReactElement) => render(<GameProvider>{ui}</GameProvider>);
 
 describe('書斎A／Bの描き分け（伏線の維持）', () => {
-  it('書斎Aには赤い本がなく、写真は2人', () => {
+  it('書斎Aには赤い本がなく、写真は1人', () => {
     const { container } = wrap(<NorthDecor room="A" />);
     expect(container.querySelectorAll('[data-scene-book="red"]')).toHaveLength(0);
     expect(container.querySelectorAll('[data-scene-book]')).toHaveLength(4);
-    expect(container.querySelector('[data-photo="A"]')).not.toBeNull();
+    expect(container.querySelector('[data-photo="A"]')?.querySelectorAll('circle')).toHaveLength(1);
   });
 
-  it('書斎Bには赤い本があり、写真は3人（Aにはいないもう1人）', () => {
+  it('書斎Bには赤い本があり、写真には別の人物も写る（2人）', () => {
     const { container } = wrap(<NorthDecor room="B" />);
     expect(container.querySelectorAll('[data-scene-book="red"]')).toHaveLength(1);
-    expect(container.querySelector('[data-photo="B"]')?.querySelectorAll('circle')).toHaveLength(3);
+    expect(container.querySelector('[data-photo="B"]')?.querySelectorAll('circle')).toHaveLength(2);
     expect(container.querySelector('[data-photo="A"]')).toBeNull();
   });
 

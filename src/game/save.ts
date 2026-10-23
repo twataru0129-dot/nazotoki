@@ -10,7 +10,7 @@ import { FACINGS, PUZZLES, type CloseupId, type Facing } from './types';
 export const SAVE_KEY = 'study0017.ch1.save';
 export const PREV_KEY = 'study0017.ch1.save.prev';
 export const CORRUPT_KEY = 'study0017.ch1.save.corrupt';
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export interface SaveData {
   saveVersion: number;
@@ -31,6 +31,14 @@ const isInt = (v: unknown, lo: number, hi: number): v is number => Number.isInte
 export function migrate(raw: unknown): unknown {
   if (!isObj(raw)) return null;
   if (raw.saveVersion === SAVE_VERSION) return raw;
+  if (raw.saveVersion === 2 && isObj(raw.progress)) {
+    // v2 → v3：エンディング・章クリア・再調査の状態を追加（v2 ではエンディング未実装のため「未再生」）
+    return {
+      ...raw,
+      saveVersion: 3,
+      progress: { ...raw.progress, ending: 'none', chapterCompleted: false, clearedAt: null, revisiting: false },
+    };
+  }
   if (raw.saveVersion === 1 && isObj(raw.progress)) {
     // v1 → v2：時間の記録と取得順を追加。取得順は分からないため A→D の順、時間は 0 から数え直す
     const p = raw.progress;
@@ -38,11 +46,11 @@ export function migrate(raw: unknown): unknown {
     const acquired = CARD_IDS.filter((id) => isObj(cards[id]) && (cards[id] as Record<string, unknown>).at !== 'unfound');
     // v1 では一度きりのイベントがなかったため、既に条件を満たしていれば「発生済み」とする（再開後に突然鳴らさない）
     const eventsSeen = [...(acquired.length >= 2 ? ['knock'] : []), ...(acquired.length === 4 ? ['silence'] : [])];
-    return {
+    return migrate({
       ...raw,
       saveVersion: 2,
       progress: { ...p, acquired, eventsSeen, playSeconds: 0, clearSeconds: null, afterClearSeconds: 0 },
-    };
+    });
   }
   return null;
 }
@@ -108,6 +116,13 @@ export function validateSave(input: unknown): SaveData | null {
   if (!isInt(playSeconds, 0, 1e9) || !isInt(afterClearSeconds, 0, 1e9)) return null;
   if (clearSeconds !== null && (!isInt(clearSeconds, 0, 1e9) || !door.unlocked || clearSeconds > playSeconds)) return null;
   if (!door.unlocked && (clearSeconds !== null || afterClearSeconds !== 0)) return null;
+  // エンディング・章クリア・再調査：解錠前には始まらない。章クリア ⇔ エンディング完了。再調査はクリア後だけ
+  const { ending, chapterCompleted, clearedAt, revisiting } = p;
+  if (!['none', 'playing', 'done'].includes(ending as string) || !isBool(chapterCompleted) || !isBool(revisiting)) return null;
+  if (ending !== 'none' && !door.unlocked) return null;
+  if (chapterCompleted !== (ending === 'done')) return null;
+  if (revisiting && !chapterCompleted) return null;
+  if (chapterCompleted ? typeof clearedAt !== 'string' : clearedAt !== null) return null;
   return raw as unknown as SaveData;
 }
 

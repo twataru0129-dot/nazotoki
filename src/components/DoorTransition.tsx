@@ -16,7 +16,17 @@ import { DoorDevice } from './art/DoorDevice';
 export const DOOR_TRANSITION_MS = 9600;
 const REDUCED_MS = 4200;
 
-export function DoorTransition({ onDone }: { onDone: () => void }) {
+export function DoorTransition({
+  onDone,
+  onSkip,
+  footsteps = true,
+}: {
+  onDone: () => void;
+  /** スキップの行き先（エンディングでは章クリアまで飛ばす）。省略時は onDone */
+  onSkip?: () => void;
+  /** 足音を鳴らすか（エンディングでは通路の場面で鳴らすため false） */
+  footsteps?: boolean;
+}) {
   const { state } = useGame();
   const reduce = document.documentElement.dataset.reducedMotion === 'true';
   const [paused, setPaused] = useState(document.visibilityState === 'hidden');
@@ -36,7 +46,7 @@ export function DoorTransition({ onDone }: { onDone: () => void }) {
     audio.setOldHouse(false);
     const cues: [number, () => void][] = [
       [reduce ? 300 : 2200, () => audio.playSfx('door_open', 0)],
-      [reduce ? 2200 : 7200, () => audio.playSfx('footsteps_hallway', 0)],
+      ...(footsteps ? ([[reduce ? 2200 : 7200, () => audio.playSfx('footsteps_hallway', 0)]] as [number, () => void][]) : []),
       [reduce ? REDUCED_MS : DOOR_TRANSITION_MS, finish],
     ];
     let elapsed = 0;
@@ -68,7 +78,16 @@ export function DoorTransition({ onDone }: { onDone: () => void }) {
 
   return (
     <div className={`door-transition${reduce ? ' is-reduced' : ''}${paused ? ' is-paused' : ''}`} data-testid="door-transition">
-      <button type="button" className="ghost-btn skip-btn" onClick={finish}>
+      <button
+        type="button"
+        className="ghost-btn skip-btn"
+        onClick={() => {
+          if (!onSkip) return finish();
+          done.current = true;
+          audio.stopSfx('door_open', 0.4);
+          onSkip();
+        }}
+      >
         スキップ
       </button>
       <div className="dt-stage">

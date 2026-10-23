@@ -27,3 +27,4 @@ npm run test:e2e     # Playwright（ビルド済み dist を vite preview で検
 - `docs/phase2_report.md` 第2段階の報告（5つの謎・進行管理・オートセーブ）
 - `docs/phase3_report.md` 第3段階の報告（任意調査・イベント・探索サポート・時間・セーブ・手帳）
 - `docs/phase4_report.md` 第4段階の報告（背景・音声20種・アニメーション・扉の演出）
+- `docs/phase5_report.md` 第5段階の報告（エンディング・クリア画面・クリア後）

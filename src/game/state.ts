@@ -50,6 +50,14 @@ export interface Progress {
   clearSeconds: number | null;
   /** 解錠後の再調査の時間（別カウンター） */
   afterClearSeconds: number;
+  /** エンディング：none＝未再生／playing＝再生中（中断したら次回は冒頭から）／done＝最後まで（またはスキップで）完了 */
+  ending: 'none' | 'playing' | 'done';
+  /** 第1章クリア（エンディング完了と同時に立つ。以後は戻らない） */
+  chapterCompleted: boolean;
+  /** 初めてクリアした日時（ISO） */
+  clearedAt: string | null;
+  /** クリア後の再調査中 */
+  revisiting: boolean;
 }
 
 export type EventId = 'knock' | 'silence';
@@ -69,6 +77,10 @@ export function initialProgress(): Progress {
     playSeconds: 0,
     clearSeconds: null,
     afterClearSeconds: 0,
+    ending: 'none',
+    chapterCompleted: false,
+    clearedAt: null,
+    revisiting: false,
   };
 }
 
@@ -133,6 +145,8 @@ export interface GameState {
   fx: { key: string; n: number } | null;
   /** 手帳からオープニングを見返している（終わったら元の探索へ戻る。進行は変えない） */
   openingReplay: boolean;
+  /** クリア後にエンディングを見返している（進行は変えない） */
+  endingReplay: boolean;
   progress: Progress;
   settings: Settings;
 }
@@ -169,7 +183,12 @@ export type Action =
   // 任意調査・時間・オープニングの見返し
   | { type: 'discover'; id: OptionalId }
   | { type: 'tick' }
-  | { type: 'replayOpening' };
+  | { type: 'replayOpening' }
+  // エンディング・クリア後
+  | { type: 'completeEnding' }
+  | { type: 'replayEnding' }
+  | { type: 'startRevisit' }
+  | { type: 'showClear' };
 
 export function initialState(settings: Settings = DEFAULT_SETTINGS): GameState {
   return {
@@ -182,6 +201,7 @@ export function initialState(settings: Settings = DEFAULT_SETTINGS): GameState {
     selected: null,
     fx: null,
     openingReplay: false,
+    endingReplay: false,
     progress: initialProgress(),
     settings,
   };
@@ -222,14 +242,18 @@ export function reducer(state: GameState, action: Action): GameState {
   switch (action.type) {
     case 'newGame':
       return { ...initialState(state.settings), screen: 'opening' };
-    case 'continueGame':
+    case 'continueGame': {
+      // 再開先：エンディングの途中なら冒頭から／クリア済み（再調査中でない）ならクリア画面／それ以外は探索
+      const p0 = action.progress;
+      const screen: Screen = p0.ending === 'playing' ? 'ending' : p0.chapterCompleted && !p0.revisiting ? 'clear' : 'explore';
       return {
         ...initialState(state.settings),
-        screen: 'explore',
-        progress: action.progress,
+        screen,
+        progress: p0,
         facing: action.facing,
-        closeup: action.closeup,
+        closeup: screen === 'explore' ? action.closeup : null,
       };
+    }
     case 'enterStudy':
       // 見返しの場合は、元の向きのまま探索に戻る
       if (state.openingReplay) return { ...state, screen: 'explore', openingReplay: false, closeup: null, overlay: null, monologue: null };
@@ -374,7 +398,41 @@ export function reducer(state: GameState, action: Action): GameState {
     }
     case 'proceed':
       if (!p.door.unlocked) return state;
-      return { ...state, screen: 'ending', closeup: null, overlay: null, selected: null };
+      // クリア済みなら見返し（進行は変えない）。初回は「再生中」を保存し、中断しても冒頭から再開できるようにする
+      if (p.chapterCompleted) return { ...state, screen: 'ending', endingReplay: true, closeup: null, overlay: null, selected: null };
+      return {
+        ...state,
+        screen: 'ending',
+        endingReplay: false,
+        closeup: null,
+        overlay: null,
+        selected: null,
+        progress: { ...p, ending: 'playing' },
+      };
+    case 'completeEnding':
+      // 最後まで見ても、スキップしても同じ。クリア時間は解錠の瞬間に固定済みで、ここでは変えない
+      if (state.screen !== 'ending' || !p.door.unlocked) return state;
+      return {
+        ...state,
+        screen: 'clear',
+        endingReplay: false,
+        progress: {
+          ...p,
+          ending: 'done',
+          chapterCompleted: true,
+          clearedAt: p.clearedAt ?? new Date().toISOString(),
+          revisiting: false,
+        },
+      };
+    case 'replayEnding':
+      if (!p.chapterCompleted) return state;
+      return { ...state, screen: 'ending', endingReplay: true, overlay: null, closeup: null };
+    case 'startRevisit':
+      if (!p.chapterCompleted) return state;
+      return { ...state, screen: 'explore', facing: 'south', closeup: null, overlay: null, monologue: '書斎に戻った。まだ調べていない場所があるかもしれない。', progress: { ...p, revisiting: true } };
+    case 'showClear':
+      if (!p.chapterCompleted) return state;
+      return { ...state, screen: 'clear', closeup: null, overlay: null, selected: null, progress: { ...p, revisiting: false } };
     case 'backToStudy':
       return { ...state, screen: 'explore', facing: 'south', closeup: null };
 
@@ -390,6 +448,8 @@ export function reducer(state: GameState, action: Action): GameState {
     // ---------- 時間 ----------
     case 'tick':
       if (state.screen !== 'explore' && state.screen !== 'ending') return state;
+      // エンディングの見返し中は数えない
+      if (state.endingReplay) return state;
       return {
         ...state,
         progress: p.door.unlocked ? { ...p, afterClearSeconds: p.afterClearSeconds + 1 } : { ...p, playSeconds: p.playSeconds + 1 },

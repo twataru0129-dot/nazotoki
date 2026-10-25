@@ -347,6 +347,8 @@ test('机：天板の写真・紙・小箱・ランプと3つの引き出しは�
   // 引き出しの画面：左・中央・右が横一列に並ぶ
   await back(page);
   await page.locator('[data-hotspot="drawer-left"]').click();
+  // 拡大画面の開くアニメーション（拡大0.25秒）が終わってから位置を測る
+  await page.evaluate(() => Promise.all(document.getAnimations().filter((x) => x.effect?.getTiming().iterations !== Infinity).map((x) => x.finished.catch(() => undefined))));
   const box = async (d: string) => (await page.locator(`[data-drawer="${d}"]`).boundingBox())!;
   const [l, m, r] = [await box('left'), await box('middle'), await box('right')];
   expect(l.x + l.width).toBeLessThanOrEqual(m.x + 0.5);

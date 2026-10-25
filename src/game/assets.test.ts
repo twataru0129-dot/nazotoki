@@ -52,3 +52,14 @@ describe('文言とフォント', () => {
     expect(missing).toEqual([]);
   });
 });
+
+describe('机上の古い写真（ユーザー提供）', () => {
+  it('photo/old_photo.webp：横長 802×540（比率はそのまま）。位置情報などのメタデータを含まない', async () => {
+    const sharp = (await import('sharp')).default;
+    const m = await sharp(pub('photo/old_photo.webp')).metadata();
+    expect([m.format, m.width, m.height]).toEqual(['webp', 802, 540]);
+    expect(m.exif ?? null).toBeNull();
+    expect(m.xmp ?? null).toBeNull();
+    expect(m.icc ?? null).toBeNull();
+  });
+});

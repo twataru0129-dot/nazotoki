@@ -1,0 +1,13 @@
+/* Noto Serif JP（SIL Open Font License 1.1）。ゲーム内の文字だけを含むサブセット（scripts/build-fonts.mjs） */
+@font-face {
+  font-family: 'Study Serif';
+  src: url('/assets/fonts/NotoSerifJP-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Study Serif';
+  src: url('/assets/fonts/NotoSerifJP-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}

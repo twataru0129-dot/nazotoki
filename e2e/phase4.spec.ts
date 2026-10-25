@@ -213,7 +213,7 @@ test('8 スマホ縦：扉の演出・解錠画面で重要なボタンが画面
   await page.setViewportSize({ width: 375, height: 667 });
   await newGame(page);
   await unlockDoor(page);
-  for (const name of ['戻る', 'ヒント']) {
+  for (const name of ['戻る']) {
     const b = (await page.getByTestId('closeup-door').getByRole('button', { name, exact: true }).boundingBox())!;
     expect(b.y).toBeGreaterThanOrEqual(0);
     expect(b.height).toBeGreaterThanOrEqual(43.5);

@@ -7,9 +7,14 @@ export const SCENES: Record<Facing, SceneDef> = {
     image: 'bg/a_north.webp',
     hotspots: [
       { id: 'bookshelf', label: '本棚', rect: { x: 570, y: 190, w: 310, h: 145 }, action: { type: 'closeup', id: 'bookshelf' } },
-      { id: 'desk', label: '机の引き出し', rect: { x: 240, y: 695, w: 990, h: 95 }, action: { type: 'closeup', id: 'desk' } },
-      { id: 'box', label: '机上の小箱', rect: { x: 985, y: 590, w: 110, h: 85 }, action: { type: 'closeup', id: 'desk' } },
-      { id: 'photo', label: '机上の写真', rect: { x: 690, y: 612, w: 56, h: 50 }, action: { type: 'closeup', id: 'desk' } },
+      // 机：天板の上の物（写真・紙・小箱・ランプ）と、前面の3つの引き出しは別々のタップ対象。
+      // どの矩形も互いに重ならない（scenes.test.ts）。小さな物は SceneStage で最小タップ寸法まで広げるが、
+      // 隣と重なる部分は元の矩形どうしの隙間の中央で切る（geometry.ts の tapRects）。
+      { id: 'drawer-left', label: '左の引き出し', rect: { x: 268, y: 712, w: 232, h: 80 }, action: { type: 'closeup', id: 'desk' } },
+      { id: 'drawer-middle', label: '中央の引き出し', rect: { x: 510, y: 712, w: 420, h: 62 }, action: { type: 'closeup', id: 'desk' } },
+      { id: 'drawer-right', label: '右の引き出し', rect: { x: 940, y: 712, w: 242, h: 80 }, action: { type: 'closeup', id: 'desk' } },
+      { id: 'box', label: '机上の小箱', rect: { x: 990, y: 592, w: 110, h: 100 }, action: { type: 'closeup', id: 'box' } },
+      { id: 'photo', label: '机上の写真', rect: { x: 640, y: 596, w: 120, h: 96 }, action: { type: 'closeup', id: 'photo' } },
       {
         id: 'lamp',
         label: '机のランプ',
@@ -19,7 +24,7 @@ export const SCENES: Record<Facing, SceneDef> = {
       {
         id: 'paper',
         label: '机上の紙',
-        rect: { x: 785, y: 620, w: 100, h: 42 },
+        rect: { x: 785, y: 620, w: 110, h: 72 },
         action: { type: 'monologue', text: '白い紙が一枚。何も書かれていない。' },
       },
     ],
@@ -36,7 +41,7 @@ export const SCENES: Record<Facing, SceneDef> = {
     facing: 'south',
     image: 'bg/a_south_closed.webp',
     hotspots: [
-      { id: 'door', label: '施錠された扉', rect: { x: 560, y: 108, w: 460, h: 738 }, action: { type: 'closeup', id: 'door' } },
+      { id: 'door', label: '施錠された扉', rect: { x: 560, y: 108, w: 444, h: 738 }, action: { type: 'closeup', id: 'door' } },
       // 任意調査O5：右の戸枠の蝶番（上）
       { id: 'hinge', label: '扉の蝶番', rect: { x: 1004, y: 130, w: 40, h: 84 }, action: { type: 'examine', id: 'O5' } },
     ],

@@ -75,7 +75,7 @@ export function TitleScreen() {
           </div>
         ) : confirmNew ? (
           <div className="confirm title-confirm">
-            <p>この端末に保存されている第1章の進行（謎・記録・調査メモ・ヒント・プレイ時間）を消して、最初から始めますか？　設定と他の章の記録は消えません。</p>
+            <p>この端末に保存されている第1章の進行（謎・記録・調査メモ・プレイ時間）を消して、最初から始めますか？　設定と他の章の記録は消えません。</p>
             <div className="confirm-row">
               <button type="button" className="ghost-btn" onClick={() => setConfirmNew(false)}>
                 やめる

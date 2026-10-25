@@ -1,7 +1,7 @@
 import { BOOK_INITIAL, CARD_IDS, isBookOrderSolved, isClockSolved, isDoorSolved, type BookId, type CardId } from './logic';
 import { OPTIONAL_IDS, optionalAvailable } from './optional';
 import { doorSlots, type Progress } from './state';
-import { FACINGS, PUZZLES, type CloseupId, type Facing } from './types';
+import { FACINGS, type CloseupId, type Facing } from './types';
 
 // 第1章の進行を端末に自動保存する。
 // - 章ごとに別キー。第1章の「はじめから」で他の章のデータを消さない。
@@ -10,7 +10,7 @@ import { FACINGS, PUZZLES, type CloseupId, type Facing } from './types';
 export const SAVE_KEY = 'study0017.ch1.save';
 export const PREV_KEY = 'study0017.ch1.save.prev';
 export const CORRUPT_KEY = 'study0017.ch1.save.corrupt';
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export interface SaveData {
   saveVersion: number;
@@ -21,7 +21,7 @@ export interface SaveData {
   progress: Progress;
 }
 
-const CLOSEUPS: CloseupId[] = ['bookshelf', 'paintings', 'desk', 'clock', 'door', 'window'];
+const CLOSEUPS: CloseupId[] = ['bookshelf', 'paintings', 'desk', 'box', 'photo', 'clock', 'door', 'window'];
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const isBool = (v: unknown): v is boolean => typeof v === 'boolean';
@@ -31,13 +31,19 @@ const isInt = (v: unknown, lo: number, hi: number): v is number => Number.isInte
 export function migrate(raw: unknown): unknown {
   if (!isObj(raw)) return null;
   if (raw.saveVersion === SAVE_VERSION) return raw;
+  if (raw.saveVersion === 3 && isObj(raw.progress)) {
+    // v3 → v4：ヒント機能の廃止。ヒントの開示段階（hintLevels）は捨てる（中身が壊れていても読み込みを止めない）
+    const { hintLevels: _dropped, ...progress } = raw.progress;
+    void _dropped;
+    return { ...raw, saveVersion: 4, progress };
+  }
   if (raw.saveVersion === 2 && isObj(raw.progress)) {
     // v2 → v3：エンディング・章クリア・再調査の状態を追加（v2 ではエンディング未実装のため「未再生」）
-    return {
+    return migrate({
       ...raw,
       saveVersion: 3,
       progress: { ...raw.progress, ending: 'none', chapterCompleted: false, clearedAt: null, revisiting: false },
-    };
+    });
   }
   if (raw.saveVersion === 1 && isObj(raw.progress)) {
     // v1 → v2：時間の記録と取得順を追加。取得順は分からないため A→D の順、時間は 0 から数え直す
@@ -63,8 +69,8 @@ export function validateSave(input: unknown): SaveData | null {
   if (raw.closeup !== null && !CLOSEUPS.includes(raw.closeup as CloseupId)) return null;
   const p = raw.progress;
   if (!isObj(p)) return null;
-  const { books, paintings, desk, clock, door, cards, hintLevels, optionalNotes, eventsSeen } = p;
-  if (!isObj(books) || !isObj(paintings) || !isObj(desk) || !isObj(clock) || !isObj(door) || !isObj(cards) || !isObj(hintLevels)) return null;
+  const { books, paintings, desk, clock, door, cards, optionalNotes, eventsSeen } = p;
+  if (!isObj(books) || !isObj(paintings) || !isObj(desk) || !isObj(clock) || !isObj(door) || !isObj(cards)) return null;
 
   // 本棚
   const order = books.order;
@@ -100,8 +106,7 @@ export function validateSave(input: unknown): SaveData | null {
   for (const id of CARD_IDS) if (prog.cards[id].at !== 'unfound' && !opened[id]) return null;
   if (clock.handsReturned !== (prog.cards.D.at !== 'unfound')) return null;
   if (door.unlocked && !isDoorSolved(doorSlots(prog), door.dialMinute)) return null;
-  // ヒント・任意調査・イベント
-  if (!PUZZLES.every((k) => isInt(hintLevels[k], 0, 3))) return null;
+  // 任意調査・イベント
   if (!Array.isArray(optionalNotes) || !Array.isArray(eventsSeen)) return null;
   if (new Set(optionalNotes).size !== optionalNotes.length) return null;
   if (!optionalNotes.every((o) => OPTIONAL_IDS.includes(o) && optionalAvailable(prog, o))) return null;

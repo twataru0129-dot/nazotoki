@@ -394,7 +394,7 @@ summary:focus-visible {
 
 .hotspot {
   position: absolute;
-  transform: translate(-50%, -50%);
+  touch-action: manipulation;
   background: transparent;
   border: 2px solid transparent;
   border-radius: 10px;
@@ -429,6 +429,7 @@ summary:focus-visible {
 .compass {
   color: var(--gold-2);
   font-size: 0.95rem;
+  white-space: nowrap;
 }
 
 .monologue {
@@ -442,7 +443,7 @@ summary:focus-visible {
 
 .menu-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   padding: 0 12px 12px;
 }
@@ -505,15 +506,22 @@ summary:focus-visible {
 }
 
 .closeup-head {
-  display: flex;
+  /* 戻る｜見出し（中央）｜空き。見出しを画面の中央に置く（狭い画面では空きを詰める） */
+  display: grid;
+  grid-template-columns: minmax(max-content, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--green-3);
 }
 
+.closeup-head .back-btn {
+  justify-self: start;
+  white-space: nowrap;
+}
+
 .closeup-head h2 {
+  text-align: center;
   font-size: 1.1rem;
   margin: 0;
   color: var(--gold-2);
@@ -624,72 +632,6 @@ summary:focus-visible {
   font-size: 1rem;
   line-height: 1.6;
 }
-
-/* 机 */
-.desk {
-  display: grid;
-  gap: 16px;
-}
-
-.desk-box {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.desk-box svg {
-  width: 96px;
-}
-
-.drawers {
-  list-style: none;
-  margin: 0;
-  padding: 10px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  background: #3a2414;
-  border: 4px solid #5a3a22;
-}
-
-.drawer {
-  background: linear-gradient(#5b3a22, #46301c);
-  border: 2px solid #2a1a0f;
-  border-radius: 4px;
-  padding: 10px 6px 26px;
-  text-align: center;
-  position: relative;
-  min-height: 120px;
-}
-
-.drawer-pos {
-  display: block;
-  font-size: 0.85rem;
-  color: var(--gold-2);
-}
-
-.drawer-label {
-  display: block;
-  margin-top: 6px;
-  background: #efe3c8;
-  color: var(--ink);
-  padding: 6px 4px;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  border-radius: 2px;
-}
-
-.drawer-handle {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  width: 36px;
-  height: 8px;
-  margin-left: -18px;
-  border-radius: 4px;
-  background: var(--gold);
-}
-
 
 .dial-readout {
   text-align: center;
@@ -818,8 +760,7 @@ summary:focus-visible {
 
 .item-grid,
 .card-slots,
-.record-list,
-.hint-list {
+.record-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -876,21 +817,6 @@ summary:focus-visible {
   border-radius: 6px;
   margin-bottom: 8px;
   color: #8c9b97;
-}
-
-.hint {
-  border-left: 3px solid var(--gold);
-  padding: 4px 12px;
-  margin-bottom: 12px;
-}
-
-.hint-stage {
-  font-size: 0.85rem;
-  color: var(--gold-2);
-}
-
-.hint p {
-  margin: 4px 0 0;
 }
 
 .settings fieldset {
@@ -1397,43 +1323,195 @@ summary:focus-visible {
   width: 96px;
 }
 
+/* 机上の小箱の画面：箱を中央に大きく */
+.closeup[data-testid='closeup-box'] .desk-box {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.closeup[data-testid='closeup-box'] .box-btn {
+  flex-direction: column;
+}
+
+.closeup[data-testid='closeup-box'] .box-btn svg {
+  width: min(60vw, 200px);
+}
+
 .desk-box.is-target .box-btn {
   border-color: var(--gold-2);
   box-shadow: 0 0 10px rgba(214, 187, 133, 0.5);
 }
 
-.drawer {
+/* 机の前面：3つの引き出しを横並び（どの画面幅でも3列）。背景の机と同じ濃い木と真鍮 */
+.desk-front {
+  position: relative;
+  width: min(100%, 680px);
+  align-self: center;
+  padding: 0 10px 12px;
+  border-radius: 4px;
+  background:
+    repeating-linear-gradient(179deg, rgba(0, 0, 0, 0.07) 0 2px, rgba(255, 220, 170, 0.025) 2px 7px, rgba(0, 0, 0, 0.05) 7px 11px),
+    linear-gradient(#3b2414, #2a180c);
+  border: 1px solid #170d06;
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.7), 0 8px 18px rgba(0, 0, 0, 0.5);
+}
+
+/* 天板の縁（革張りの天板の手前の木口） */
+.desk-top-edge {
+  height: 14px;
+  margin: 0 -10px 10px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(#6d4426, #4a2c17 55%, #2a170b);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.drawers {
+  list-style: none;
+  margin: 0;
   padding: 0;
-  background: none;
-  border: 0;
-  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  align-items: start;
+}
+
+.drawer {
+  min-width: 0;
 }
 
 .drawer-front {
   width: 100%;
-  min-height: 120px;
-  background: linear-gradient(#5b3a22, #46301c);
-  border: 2px solid #2a1a0f;
-  border-radius: 4px;
-  padding: 10px 6px 26px;
+  min-height: 150px;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 8px;
+  padding: 10px 6px 12px;
   text-align: center;
-  position: relative;
   cursor: pointer;
+  border-radius: 3px;
+  border: 1px solid #150b04;
+  background:
+    repeating-linear-gradient(178deg, rgba(0, 0, 0, 0.1) 0 1px, rgba(255, 210, 150, 0.04) 1px 5px, rgba(0, 0, 0, 0.06) 5px 9px, rgba(255, 210, 150, 0.03) 9px 14px),
+    radial-gradient(ellipse at 30% 20%, rgba(255, 200, 140, 0.12), transparent 60%),
+    linear-gradient(#6a4124, #4b2c16);
+  /* 面取り：上と左が明るく、下と右が暗い */
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 214, 160, 0.16),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.45),
+    inset 0 0 0 5px rgba(0, 0, 0, 0.12),
+    0 2px 3px rgba(0, 0, 0, 0.6);
+  touch-action: manipulation;
+}
+
+.drawer-front:focus-visible {
+  outline: 3px solid var(--gold-2);
+  outline-offset: 2px;
 }
 
 .drawer.is-open .drawer-front {
-  border-color: var(--gold);
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 214, 160, 0.16),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.45),
+    0 0 0 2px var(--gold),
+    0 6px 10px rgba(0, 0, 0, 0.6);
 }
 
+.drawer-pos {
+  font-size: 0.95rem;
+  letter-spacing: 0.15em;
+  color: var(--gold-2);
+  text-shadow: 0 1px 1px #000;
+}
+
+/* 札：真鍮の額（札差し）に差し込んだ紙片 */
+.label-plate {
+  position: relative;
+  width: 100%;
+  padding: 4px;
+  border-radius: 3px;
+  background: linear-gradient(#e9cf8f, #b48a45 45%, #7c5a26);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 245, 210, 0.6);
+}
+
+.label-plate::before,
+.label-plate::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: #5a3d17;
+}
+
+.label-plate::before {
+  left: 1px;
+}
+
+.label-plate::after {
+  right: 1px;
+}
+
+.drawer-label {
+  display: block;
+  padding: 6px 4px;
+  background: linear-gradient(#f3e8cf, #e4d3ad);
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  border-radius: 1px;
+  box-shadow: inset 0 0 4px rgba(90, 60, 20, 0.35);
+}
+
+.drawer-label .phrase {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* 小さなスマホ（幅360px未満）：余白を詰めて、札の文字の大きさは保つ */
+@media (max-width: 359px) {
+  .desk-front {
+    padding: 0 6px 8px;
+  }
+  .desk-top-edge {
+    margin: 0 -6px 8px;
+  }
+  .drawers {
+    gap: 5px;
+  }
+  .drawer-front {
+    padding: 8px 3px 10px;
+  }
+  .label-plate {
+    padding: 3px;
+  }
+  .drawer-label {
+    padding: 5px 2px;
+  }
+}
+
+.drawer-pull {
+  width: min(78%, 84px);
+  height: auto;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
+}
+
+/* 開いた引き出しの中（前面の下に引き出された箱） */
 .drawer-inside {
   position: relative;
-  margin-top: 6px;
-  padding: 10px 8px 22px;
-  background: #23170d;
+  margin-top: 4px;
+  padding: 10px 6px 26px;
+  min-height: 96px;
+  background: linear-gradient(#1c120a, #2b1b0f);
   border: 2px solid #5a3a22;
-  border-radius: 3px;
+  border-top: 0;
+  border-radius: 0 0 3px 3px;
+  box-shadow: inset 0 8px 10px rgba(0, 0, 0, 0.7);
   display: grid;
   justify-items: center;
+  align-content: start;
   gap: 4px;
 }
 
@@ -1449,29 +1527,26 @@ summary:focus-visible {
   animation: glow 1.6s ease-in-out infinite alternate;
 }
 
-.engraving {
-  position: absolute;
-  right: 8px;
-  bottom: 2px;
-  font-size: 0.85rem;
-  color: #7f6646;
-  letter-spacing: 0.05em;
+@media (min-width: 560px) {
+  .drawer-front {
+    min-height: 168px;
+    padding: 12px 10px 14px;
+  }
+  .drawer-label {
+    font-size: 1.05rem;
+  }
 }
 
-@media (max-width: 520px) {
-  .drawers {
-    grid-template-columns: 1fr;
-  }
-  .drawer-front {
-    min-height: 0;
-    display: grid;
-    grid-template-columns: 3.5em 1fr;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px 20px;
-    text-align: left;
-  }
+.photo-closeup {
+  display: grid;
+  justify-items: center;
+  padding: 8px 0;
 }
+
+.photo-closeup .old-photo {
+  width: min(100%, 440px);
+}
+
 
 /* 時計 */
 .clock-dial {
@@ -1940,15 +2015,6 @@ summary:focus-visible {
   padding: 8px 12px;
   color: var(--gold-2);
   background: rgba(185, 154, 96, 0.12);
-}
-
-.guide-list {
-  margin: 0 0 8px;
-  padding-left: 1.2em;
-}
-
-.guide-list li {
-  margin-bottom: 6px;
 }
 
 .silence-veil {

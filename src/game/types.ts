@@ -4,11 +4,11 @@ export const FACING_LABEL: Record<Facing, string> = { north: '北', east: '東',
 
 export type Screen = 'title' | 'opening' | 'explore' | 'ending' | 'clear';
 
-/** 拡大調査画面。謎の操作は第2段階で各画面に追加する */
-export type CloseupId = 'bookshelf' | 'paintings' | 'desk' | 'clock' | 'door' | 'window';
+/** 拡大調査画面。desk は机の3つの引き出し、box は机上の小箱、photo は机上の古い写真 */
+export type CloseupId = 'bookshelf' | 'paintings' | 'desk' | 'box' | 'photo' | 'clock' | 'door' | 'window';
 
 /** 探索画面の上に重ねる画面（同時に1つだけ） */
-export type OverlayId = 'inventory' | 'notebook' | 'hints' | 'settings' | 'letter';
+export type OverlayId = 'inventory' | 'notebook' | 'settings' | 'letter';
 
 export type PuzzleId = 'books' | 'paintings' | 'desk' | 'clock' | 'door';
 export const PUZZLES: PuzzleId[] = ['books', 'paintings', 'desk', 'clock', 'door'];

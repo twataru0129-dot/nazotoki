@@ -1,13 +1,11 @@
 import { OPTIONAL_IDS } from '../game/optional';
 import { useGame } from '../game/store';
 import { formatDuration } from '../game/time';
-import { PUZZLES } from '../game/types';
 import { TITLE } from '../game/text';
 
 export function ClearScreen() {
   const { state, dispatch } = useGame();
   const p = state.progress;
-  const hints = PUZZLES.reduce((n, k) => n + p.hintLevels[k], 0);
   const notes = p.optionalNotes.length;
   return (
     <main className="clear-screen" data-testid="clear-screen">
@@ -24,10 +22,6 @@ export function ClearScreen() {
         <div>
           <dt>解決した謎</dt>
           <dd>5 / 5</dd>
-        </div>
-        <div>
-          <dt>ヒント開示数</dt>
-          <dd data-testid="clear-hints">{hints} / 15</dd>
         </div>
         <div>
           <dt>隠し調査メモ</dt>

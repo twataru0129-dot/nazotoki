@@ -3,7 +3,6 @@ import { CARD_IDS, CARDS, type CardId } from '../../game/logic';
 import { OPTIONAL_IDS, OPTIONALS } from '../../game/optional';
 import { useGame } from '../../game/store';
 import { formatDuration } from '../../game/time';
-import { PUZZLES } from '../../game/types';
 import { CardFront } from '../art/CardFace';
 import { LetterBack, LetterFront } from '../art/Letter';
 
@@ -27,7 +26,6 @@ export function NotebookPanel() {
     const loc = p.cards[id];
     return loc.at === 'slot' ? `所持先：扉の枠${loc.index + 1}` : '所持先：持ち物';
   };
-  const hints = PUZZLES.reduce((n, k) => n + p.hintLevels[k], 0);
   const notes = p.optionalNotes;
 
   return (
@@ -43,10 +41,6 @@ export function NotebookPanel() {
             <dd data-testid="clear-time">{p.clearSeconds === null ? '記録なし' : formatDuration(p.clearSeconds)}</dd>
           </div>
         )}
-        <div>
-          <dt>ヒント</dt>
-          <dd>{hints} / 15</dd>
-        </div>
         <div>
           <dt>調査メモ</dt>
           <dd>{notes.length} / 6</dd>

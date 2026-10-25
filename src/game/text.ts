@@ -1,4 +1,4 @@
-import type { CloseupId, PuzzleId } from './types';
+import type { CloseupId } from './types';
 
 // 文言は設計書（第1章_完成設計書.md）の確定文面をそのまま使う。
 
@@ -23,7 +23,9 @@ export const LETTER_BACK = '裏面には何も書かれていない。紙は少�
 export const CLOSEUP_TEXT: Record<CloseupId, { title: string; inscription?: string; description?: string }> = {
   bookshelf: { title: '本棚', inscription: '月から太陽へ。途切れた道をつなげ。' },
   paintings: { title: '4枚の絵画', inscription: '影は、光の反対へ伸びる。' },
-  desk: { title: '書斎机', inscription: '鍵は三つのうち一つにある。真実を語る札は、ただ一枚。' },
+  desk: { title: '机の引き出し', inscription: '鍵は三つのうち一つにある。真実を語る札は、ただ一枚。' },
+  box: { title: '机上の小箱' },
+  photo: { title: '机上の古い写真' },
   clock: { title: '柱時計', inscription: 'この時計は、実際の時刻より3分進む。真実の時刻に針を戻せ。' },
   door: {
     title: '施錠された扉',
@@ -34,42 +36,3 @@ export const CLOSEUP_TEXT: Record<CloseupId, { title: string; inscription?: stri
 
 /** §7 机の札 */
 export const DRAWER_LABELS = { left: '鍵は中央にある', middle: '鍵は中央にはない', right: '鍵は右にはない' } as const;
-
-export const PUZZLE_NAME: Record<PuzzleId, string> = {
-  books: '本棚',
-  paintings: '絵画',
-  desk: '机',
-  clock: '時計',
-  door: '扉',
-};
-
-/** §12.1 ゲーム内に表示するヒント全文（確定） */
-export const HINTS: Record<PuzzleId, [string, string, string]> = {
-  books: [
-    '本棚の左右には、月と太陽の模様がある。本の背表紙にも模様があるようだ。何か関係があるのだろうか。',
-    '本の左右にある模様をつなげてみよう。月から始まる青い本の右側は『波』。次には、左側が『波』になっている本が来るはずだ。',
-    '左から青 → 白 → 黒 → 緑の順に並べよう。月 → 波 → 葉 → 星 → 太陽と、模様がつながる。',
-  ],
-  paintings: [
-    '4枚の絵はよく似ている。ランプの位置と、花瓶の影が伸びている方向を比べてみよう。',
-    '光が左から当たれば、影は右に伸びる。反対に、光が右から当たれば、影は左に伸びるはずだ。',
-    '正解はCの絵。ランプが花瓶の右側にあるのに、影も右へ伸びている。この絵を調べよう。',
-  ],
-  desk: [
-    '大切なのは『本当のことが書かれた札は1枚だけ』という条件。鍵がある場所を一つずつ仮定してみよう。',
-    '鍵が左にあっても中央にあっても、本当の札が2枚になってしまう。残る場所で、3枚の札の内容を確認しよう。',
-    '正解は右の引き出し。鍵が右にあれば、中央の札だけが本当になる。',
-  ],
-  clock: [
-    '時計は0時17分で止まっている。でも、この時計は実際の時刻より進んでいるらしい。',
-    '3分進んでいるということは、実際の時刻より3分後を示している。表示されている時刻から3分戻してみよう。',
-    '正解は午前0時14分。0時17分から3分引いた時刻に針を合わせよう。',
-  ],
-  door: [
-    '扉には『終わりから、始まりへ』と書かれている。4枚の記録の時刻を確認しよう。ダイヤルの時刻にも注意が必要だ。',
-    '記録は時刻の遅いものから早いものへ、逆順に並べよう。ダイヤルは、時計が3分進んでいたことを思い出して調整する。',
-    'ダイヤルを00:14に合わせ、記録カードを◇ → ○ → □ → △の順に配置しよう。',
-  ],
-};
-
-export const HINT_STAGE_LABEL = ['着眼点', '解き方', '答えを見る'] as const;

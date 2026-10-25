@@ -41,3 +41,4 @@ npm run test:e2e     # Playwright（ビルド済み dist を vite preview で検
 - `docs/qa_checklist_final.md` ⑮QA受入チェックリストの最終照合
 - `ASSET_PROVENANCE.md` 素材の出自・利用条件・未完成の部分
 - `docs/iphone_check.md` iPhone での公開前確認
+- `docs/playtest_fix1.md` 試遊後の修正（1）机のタップ領域・引き出しの横並び・ヒント機能の廃止

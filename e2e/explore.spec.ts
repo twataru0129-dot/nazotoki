@@ -6,10 +6,9 @@ const SCENE_H = 1086;
 // 第1段階のホットスポット（src/game/scenes.ts と同じ値。ずれ検査用）
 const SPOTS: Record<string, { facing: string; rect: [number, number, number, number] }> = {
   bookshelf: { facing: 'north', rect: [570, 190, 310, 145] },
-  desk: { facing: 'north', rect: [240, 695, 990, 95] },
   clock: { facing: 'east', rect: [345, 20, 240, 770] },
   window: { facing: 'east', rect: [1100, 15, 345, 630] },
-  door: { facing: 'south', rect: [560, 108, 460, 738] },
+  door: { facing: 'south', rect: [560, 108, 444, 738] },
   paintings: { facing: 'west', rect: [355, 95, 730, 550] },
 };
 
@@ -161,23 +160,22 @@ test('画面の向きを変えてもホットスポットがずれない', async
   expect(after[1]).toBeCloseTo(before[1], 2);
 });
 
-test('探索画面のボタンは44px以上', async ({ page }) => {
+test('探索画面のボタンは44px以上。机の上の小物のように近接した調べる場所は、重ならない範囲で30px以上', async ({ page }) => {
   await startGame(page);
   const small = await page.locator('.explore button:visible').evaluateAll((els) =>
     els
-      .map((e) => ({ name: e.getAttribute('aria-label') ?? e.textContent, r: e.getBoundingClientRect() }))
-      .filter(({ r }) => r.width < 43.5 || r.height < 43.5)
+      .map((e) => ({ name: e.getAttribute('aria-label') ?? e.textContent, r: e.getBoundingClientRect(), spot: e.classList.contains('hotspot') }))
+      .filter(({ r, spot }) => (spot ? r.width < 29.5 || r.height < 29.5 : r.width < 43.5 || r.height < 43.5))
       .map(({ name }) => name),
   );
   expect(small).toEqual([]);
 });
 
-test('持ち物・手帳・ヒント・設定が開閉でき、モーダルは重ならない', async ({ page }) => {
+test('持ち物・手帳・設定が開閉でき、モーダルは重ならない', async ({ page }) => {
   await startGame(page);
   for (const [label, id] of [
     ['持ち物', 'inventory'],
     ['手帳', 'notebook'],
-    ['ヒント', 'hints'],
     ['設定', 'settings'],
   ]) {
     await page.getByRole('navigation', { name: 'メニュー' }).getByRole('button', { name: label, exact: true }).click();
@@ -197,17 +195,25 @@ test('持ち物・手帳・ヒント・設定が開閉でき、モーダルは�
   await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
-test('拡大画面からヒントを開き、閉じると拡大画面に戻る。ヒントは1段階ずつ', async ({ page }) => {
+test('ヒント機能は無い：下部メニューは3つ、拡大画面・手帳・持ち物・設定にもヒントや答えの案内が出ない', async ({ page }) => {
   await startGame(page);
-  await face(page, 'east');
-  await page.locator('[data-hotspot="clock"]').click();
-  await page.getByTestId('closeup-clock').getByRole('button', { name: 'ヒント' }).click();
-  await expect(page.getByRole('tab', { name: '時計' })).toHaveAttribute('aria-selected', 'true');
-  await page.getByRole('button', { name: 'ヒント1（着眼点）を見る' }).click();
-  await expect(page.getByText('時計は0時17分で止まっている。')).toBeVisible();
-  await expect(page.getByText('正解は午前0時14分')).toHaveCount(0);
-  await page.getByRole('button', { name: '閉じる' }).click();
-  await expect(page.getByTestId('closeup-clock')).toBeVisible();
+  const nav = page.getByRole('navigation', { name: 'メニュー' }).getByRole('button');
+  await expect(nav).toHaveText(['持ち物', '手帳', '設定']);
+  const banned = /ヒント|答えを見る|次に何を調べる|探索の手がかり|正解は/;
+  await expect(page.locator('body')).not.toContainText(banned);
+  for (const [f, h] of [['north', 'bookshelf'], ['north', 'drawer-left'], ['north', 'box'], ['north', 'photo'], ['east', 'clock'], ['east', 'window'], ['south', 'door'], ['west', 'paintings']] as const) {
+    await face(page, f);
+    await page.locator(`[data-hotspot="${h}"]`).click();
+    await expect(page.locator('.closeup')).toBeVisible();
+    await expect(page.locator('.closeup-head').getByRole('button')).toHaveText([/戻る/]);
+    await expect(page.locator('body')).not.toContainText(banned);
+    await page.getByRole('button', { name: '戻る' }).click();
+  }
+  for (const label of ['持ち物', '手帳', '設定']) {
+    await page.getByRole('navigation', { name: 'メニュー' }).getByRole('button', { name: label, exact: true }).click();
+    await expect(page.getByRole('dialog')).not.toContainText(banned);
+    await page.getByRole('button', { name: '閉じる' }).click();
+  }
 });
 
 test('設定はリロード後も保持される', async ({ page }) => {

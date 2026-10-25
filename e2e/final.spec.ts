@@ -18,7 +18,8 @@ test.afterEach(async ({ page }) => {
 const saved = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem('study0017.ch1.save') ?? 'null'));
 const menu = (page: Page, name: string) => page.getByRole('navigation', { name: 'メニュー' }).getByRole('button', { name, exact: true }).click();
 
-/** 画面内に見えているボタンが、すべて画面の内側にあり、44px以上あること。横スクロールが出ないこと */
+/** 画面内に見えているボタンが、すべて画面の内側にあり、44px以上あること。横スクロールが出ないこと。
+ *  背景の調べる場所（.hotspot）は、机の上の小物のように近接する物があるため「互いに重ならず、30px以上」 */
 async function checkLayout(page: Page, label: string, waitAnimations = true) {
   const vp = page.viewportSize()!;
   // 開閉のアニメーション（拡大0.25秒など）が終わってから測る（無限ループの装飾アニメは除く）。
@@ -44,8 +45,15 @@ async function checkLayout(page: Page, label: string, waitAnimations = true) {
         const scroller = el.closest('.closeup-body, .modal-body, .clear-screen, .opening');
         if (r.left < -0.5 || r.right > w + 0.5) out.push(`${name}: 横にはみ出し`);
         if (!scroller && (r.top < -0.5 || r.bottom > h + 0.5)) out.push(`${name}: 縦にはみ出し`);
-        if (r.width < 43.5 || r.height < 43.5) out.push(`${name}: ${Math.round(r.width)}×${Math.round(r.height)}`);
+        const min = el.classList.contains('hotspot') ? 29.5 : 43.5;
+        if (r.width < min || r.height < min) out.push(`${name}: ${Math.round(r.width)}×${Math.round(r.height)}`);
       }
+      const spots = Array.from(document.querySelectorAll('.hotspot')).map((e) => [e.getAttribute('data-hotspot'), e.getBoundingClientRect()] as const);
+      for (let i = 0; i < spots.length; i++)
+        for (let j = i + 1; j < spots.length; j++) {
+          const [a, b] = [spots[i][1], spots[j][1]];
+          if (a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5) out.push(`${spots[i][0]}×${spots[j][0]}: 重なり`);
+        }
       if (document.documentElement.scrollWidth > w + 1) out.push(`横スクロール ${document.documentElement.scrollWidth}px`);
       return out;
     },
@@ -123,13 +131,17 @@ test('総合：タイトル → 手紙 → 4方向 → 4つの謎（任意の順
   expect(await bookOrder(page)).toEqual(['blue', 'ivory', 'black', 'green']);
   await page.getByRole('button', { name: '記録カードAを取る' }).click();
   await back(page);
-  // 机：左（開かない）→ 右 → 鍵 → 選んで木箱
-  await open(page, 'north', 'desk');
-  await checkLayout(page, '机');
+  // 机：引き出し（左は開かない → 右）→ 鍵 → 机上の小箱で鍵を選んで使う
+  await open(page, 'north', 'drawer-middle');
+  await checkLayout(page, '机の引き出し');
   await page.locator('[data-drawer="left"]').click();
   await expect(page.getByTestId('closeup-monologue')).toContainText('開かない');
   await page.locator('[data-drawer="right"]').click();
   await page.getByRole('button', { name: '小さな鍵を取る' }).click();
+  await checkLayout(page, '机の引き出し（開いた）');
+  await back(page);
+  await open(page, 'north', 'box');
+  await checkLayout(page, '机上の小箱');
   await page.locator('.inv-bar').getByRole('button', { name: '小さな鍵' }).click();
   await page.getByTestId('desk-box').click();
   await page.getByRole('button', { name: '記録カードCを取る' }).click();
@@ -183,7 +195,7 @@ test('総合：タイトル → 手紙 → 4方向 → 4つの謎（任意の順
   const mm = String(Math.floor(clearSeconds / 60)).padStart(2, '0');
   const ss = String(clearSeconds % 60).padStart(2, '0');
   await expect(page.getByTestId('clear-time-final')).toHaveText(`${mm}:${ss}`);
-  await expect(page.getByTestId('clear-hints')).toHaveText('0 / 15');
+  await expect(page.getByTestId('clear-screen')).not.toContainText('ヒント');
   await expect(page.getByTestId('clear-notes')).toHaveText('0 / 6');
 
   // 11 再調査 → クリア画面 → 再鑑賞（スキップ）→ タイトル → つづきから
@@ -232,14 +244,14 @@ test('各謎の途中退出と再開：操作途中の状態が保たれ、不�
   await expect(page.locator('[data-painting="C"]')).toBeEnabled();
   await back(page);
   // 机：右を開けて鍵を取らずに退出 → 鍵は残っている。取ってから再開 → 持ち物に1本
-  await open(page, 'north', 'desk');
+  await open(page, 'north', 'drawer-right');
   await page.locator('[data-drawer="right"]').click();
   await back(page);
   await reload();
-  await open(page, 'north', 'desk');
+  await open(page, 'north', 'drawer-right');
   await page.getByRole('button', { name: '小さな鍵を取る' }).click();
   await reload('desk');
-  await expect(page.locator('.inv-bar').getByRole('button', { name: '小さな鍵' })).toHaveCount(1);
+  expect((await saved(page)).progress.desk.key).toBe('inventory');
   await expect(page.getByRole('button', { name: '小さな鍵を取る' })).toHaveCount(0);
   await back(page);
   // 時計：00:16 で退出 → 再開しても 00:16、未解決
@@ -272,33 +284,81 @@ test('各謎の途中退出と再開：操作途中の状態が保たれ、不�
   expect(p.cards.D).toEqual({ at: 'inventory' });
 });
 
-test('ヒント：5問×3段階、順番どおり。第1段階は答えを明かさない', async ({ page }) => {
+test('机：天板の写真・紙・小箱・ランプと3つの引き出しは別々に反応し、関係のない所を押しても何も開かない', async ({ page }, info) => {
   await page.goto('./');
   await page.getByRole('button', { name: 'はじめから' }).click();
   await page.getByRole('button', { name: 'スキップ' }).click();
-  await menu(page, 'ヒント');
-  const answers: Record<string, RegExp> = {
-    本棚: /青 → 白 → 黒 → 緑/,
-    絵画: /正解はC/,
-    机: /正解は右の引き出し/,
-    時計: /0時14分/,
-    扉: /◇ → ○ → □ → △/,
+  const touch = !!info.project.use.hasTouch;
+  const stage = page.getByTestId('stage');
+  // 背景座標（1448×1086）の点を、指（タッチ端末）またはマウスで押す
+  const press = async (x: number, y: number) => {
+    const b = (await stage.boundingBox())!;
+    const px = b.x + (x / 1448) * b.width;
+    const py = b.y + (y / 1086) * b.height;
+    if (touch) await page.touchscreen.tap(px, py);
+    else await page.mouse.click(px, py);
   };
-  let total = 0;
-  for (const [tab, answer] of Object.entries(answers)) {
-    await page.getByRole('tab', { name: tab }).click();
-    await page.getByRole('button', { name: 'ヒント1（着眼点）を見る' }).click();
-    const h1 = await page.locator('.hint').last().innerText();
-    expect(h1, `${tab}のヒント1`).not.toMatch(answer);
-    await page.getByRole('button', { name: 'ヒント2（解き方）を見る' }).click();
-    await page.getByRole('button', { name: '答えを見る' }).click();
-    const stages = await page.locator('.hint-stage').allInnerTexts();
-    expect(stages).toEqual(['ヒント1：着眼点', 'ヒント2：解き方', 'ヒント3：答えを見る']);
-    expect(await page.locator('.hint').last().innerText()).toMatch(answer);
-    total += stages.length;
+  const closeup = page.locator('.closeup');
+  const expectOpened = async (id: string, where: string) => {
+    await expect(page.getByTestId(`closeup-${id}`), where).toBeVisible();
+    await back(page);
+  };
+  for (const size of [null, { w: 0.6, h: 0.75 }]) {
+    // 2周目：画面サイズを変えてから（回転・拡大縮小に相当）同じ点を押す
+    if (size) {
+      const vp = page.viewportSize()!;
+      await page.setViewportSize({ width: Math.round(vp.width * size.w), height: Math.round(vp.height * size.h) });
+      await page.setViewportSize(vp);
+    }
+    await face(page, 'north');
+    // 写真：中央・下端寄り（以前は引き出しが開いていた位置）→ 写真の画面
+    await press(718, 637);
+    await expectOpened('photo', '写真の中央');
+    await press(718, 676);
+    await expectOpened('photo', '写真の下端');
+    // 小箱 → 小箱の画面
+    await press(1042, 640);
+    await expectOpened('box', '小箱');
+    // 紙・ランプ → 独白だけ（画面は開かない）
+    await press(840, 662);
+    await expect(page.getByTestId('monologue')).toContainText('白い紙が一枚');
+    await expect(closeup).toHaveCount(0);
+    await press(1095, 485);
+    await expect(page.getByTestId('monologue')).toContainText('緑のシェードのランプ');
+    await expect(closeup).toHaveCount(0);
+    // 引き出し（左・中央・右）→ 引き出しの画面
+    for (const [x, y, name] of [[365, 745, '左'], [720, 735, '中央'], [1070, 745, '右']] as const) {
+      await press(x, y);
+      await expectOpened('desk', `${name}の引き出し`);
+    }
+    // 関係のない所（机の脚の間・床・壁の上部）→ 何も開かない
+    for (const [x, y] of [[720, 900], [140, 1000], [1300, 120]] as const) {
+      await press(x, y);
+      await expect(closeup, `${x},${y}`).toHaveCount(0);
+    }
   }
-  expect(total).toBe(15);
-  await checkLayout(page, 'ヒント');
+  await checkLayout(page, '北（机）');
+  // 写真の画面：大きく表示され、右端の任意調査（O1）を調べられる
+  await page.locator('[data-hotspot="photo"]').click();
+  await checkLayout(page, '机上の古い写真');
+  await page.getByRole('button', { name: '写真の右端を調べる' }).click();
+  await expect(page.getByTestId('closeup-monologue')).toContainText('写真の右端だけ、紙の光沢が違う');
+  expect((await saved(page)).progress.optionalNotes).toEqual(['O1']);
+  // 引き出しの画面：左・中央・右が横一列に並ぶ
+  await back(page);
+  await page.locator('[data-hotspot="drawer-left"]').click();
+  const box = async (d: string) => (await page.locator(`[data-drawer="${d}"]`).boundingBox())!;
+  const [l, m, r] = [await box('left'), await box('middle'), await box('right')];
+  expect(l.x + l.width).toBeLessThanOrEqual(m.x + 0.5);
+  expect(m.x + m.width).toBeLessThanOrEqual(r.x + 0.5);
+  expect(Math.abs(l.y - m.y)).toBeLessThan(2);
+  expect(Math.abs(l.y - r.y)).toBeLessThan(2);
+  await expect(page.locator('[data-drawer="left"]')).toContainText('左');
+  await expect(page.locator('[data-drawer="right"]')).toContainText('右');
+  // 札の文字は読める大きさ（15px以上）
+  const fs = await page.locator('.drawer-label').first().evaluate((e) => parseFloat(getComputedStyle(e).fontSize));
+  expect(fs).toBeGreaterThanOrEqual(15);
+  await checkLayout(page, '机の引き出し');
 });
 
 test('キーボードだけで基本操作：向きの変更・調べる・閉じる', async ({ page }) => {
@@ -339,7 +399,7 @@ test('モーダル表示中は背面を操作できない。拡大画面の閉�
   await expect(page.getByTestId('stage')).toHaveAttribute('data-facing', 'north');
   if (inside) await page.getByRole('button', { name: '閉じる' }).click();
   await expect(page.getByRole('dialog')).toHaveCount(0);
-  await open(page, 'north', 'desk');
+  await open(page, 'north', 'drawer-left');
   const b = (await page.getByRole('button', { name: '戻る' }).boundingBox())!;
   expect(b.y).toBeGreaterThanOrEqual(0);
   await back(page);
@@ -359,7 +419,7 @@ test('初回表示は軽く、BGMは最初の操作まで読み込まない。�
   await page.getByRole('button', { name: 'スキップ' }).click();
   const voices = () => page.evaluate(() => (window as unknown as { __study0017Audio: { voiceCount: number } }).__study0017Audio.voiceCount);
   for (let round = 0; round < 3; round++) {
-    for (const [f, h] of [['north', 'bookshelf'], ['east', 'clock'], ['west', 'paintings'], ['north', 'desk'], ['south', 'door']] as const) {
+    for (const [f, h] of [['north', 'bookshelf'], ['east', 'clock'], ['west', 'paintings'], ['north', 'drawer-left'], ['north', 'photo'], ['north', 'box'], ['south', 'door']] as const) {
       await open(page, f, h);
       await back(page);
     }

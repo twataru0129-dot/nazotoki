@@ -112,7 +112,7 @@ describe('エンディングの進行状態', () => {
     expect(cont(rev.progress).screen).toBe('explore');
   });
 
-  it('保存データ v3：矛盾した状態を読み込まない／v2 から移行できる', () => {
+  it('保存データ：矛盾した状態を読み込まない／v2 から移行できる', () => {
     const s = solveAll();
     const base = { saveVersion: SAVE_VERSION, chapter: 1, savedAt: '', facing: 'south', closeup: null };
     expect(validateSave({ ...base, progress: { ...s.progress, chapterCompleted: true } })).toBeNull(); // エンディング未完了なのにクリア
@@ -121,7 +121,7 @@ describe('エンディングの進行状態', () => {
     expect(validateSave({ ...base, progress: { ...fresh.progress, ending: 'playing' } })).toBeNull(); // 未解錠で再生中
     const { ending: _e, chapterCompleted: _c, clearedAt: _d, revisiting: _r, ...v2progress } = s.progress;
     const m = migrate({ ...base, saveVersion: 2, progress: v2progress }) as { saveVersion: number; progress: GameState['progress'] };
-    expect(m.saveVersion).toBe(3);
+    expect(m.saveVersion).toBe(SAVE_VERSION);
     expect(m.progress.ending).toBe('none');
     expect(validateSave(m)).not.toBeNull();
   });

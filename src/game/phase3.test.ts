@@ -1,8 +1,7 @@
 import { BOOK_SOLUTION, CARD_IDS, type BookId, type CardId } from './logic';
-import { explorationGuide } from './guide';
 import { OPTIONAL_IDS, optionalAvailable } from './optional';
 import { CORRUPT_KEY, PREV_KEY, SAVE_KEY, SAVE_VERSION, loadSave, migrate, restoreBackup, validateSave, writeSave } from './save';
-import { initialProgress, initialState, reducer, type Action, type GameState } from './state';
+import { initialState, reducer, type Action, type GameState } from './state';
 
 const run = (s: GameState, ...as: Action[]) => as.reduce(reducer, s);
 const start = () => run(initialState(), { type: 'newGame' }, { type: 'enterStudy' });
@@ -116,23 +115,6 @@ describe('時間の記録', () => {
   });
 });
 
-describe('探索サポート', () => {
-  it('取り忘れたカード、4枚そろった後の扉、解錠後を案内する（任意調査の場所は出さない）', () => {
-    let s = start();
-    expect(explorationGuide(s.progress).join()).toContain('北の本棚');
-    s = SOLVE.B(s);
-    expect(explorationGuide(s.progress)).toEqual(['西の絵画の裏に、まだ取っていない記録がある。']);
-    s = run(s, { type: 'takeCard', id: 'B' });
-    expect(explorationGuide(s.progress).join()).not.toContain('西の絵画');
-    s = run(s, { type: 'openDrawer', id: 'right' }, { type: 'takeKey' });
-    expect(explorationGuide(s.progress).join()).toContain('小さな鍵を使える場所');
-    s = unlock(start());
-    expect(explorationGuide(s.progress)).toEqual(['扉の錠は外れた。南の扉から先へ進める。']);
-    const all = explorationGuide(initialProgress()).join();
-    expect(all).not.toMatch(/写真|蝶番|金具|刻印|傷|手紙/);
-  });
-});
-
 describe('セーブの詳細', () => {
   beforeEach(() => localStorage.clear());
 
@@ -151,6 +133,35 @@ describe('セーブの詳細', () => {
       expect(r.data.progress.playSeconds).toBe(0);
     }
     expect(migrate({ saveVersion: 0 })).toBeNull();
+  });
+
+  it('ヒント廃止前（v3）の保存を読める。ヒントの記録は捨て、壊れていても読み込みを止めない', () => {
+    const p = take(take(start(), 'A'), 'B').progress;
+    for (const hintLevels of [{ books: 3, paintings: 1, desk: 0, clock: 2, door: 0 }, { books: 'x' }, undefined]) {
+      const v3 = { saveVersion: 3, chapter: 1, savedAt: '', facing: 'north', closeup: 'desk', progress: { ...p, hintLevels } };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(v3));
+      const r = loadSave();
+      expect(r.status).toBe('ok');
+      if (r.status === 'ok') {
+        expect(r.migrated).toBe(true);
+        expect(r.data.saveVersion).toBe(SAVE_VERSION);
+        expect(r.data.closeup).toBe('desk');
+        expect(Object.keys(r.data.progress)).not.toContain('hintLevels');
+        expect(r.data.progress).toEqual(p);
+      }
+    }
+    // v2（エンディング実装前）→ v3 → v4 と続けて移行できる
+    const { ending: _e, chapterCompleted: _c, clearedAt: _d, revisiting: _r, ...v2progress } = p;
+    const v2 = { saveVersion: 2, chapter: 1, savedAt: '', facing: 'east', closeup: null, progress: { ...v2progress, hintLevels: { books: 1, paintings: 0, desk: 0, clock: 0, door: 0 } } };
+    expect(validateSave(v2)?.progress).toEqual(p);
+  });
+
+  it('新しい拡大画面（小箱・写真）の位置も保存・再開できる', () => {
+    for (const closeup of ['box', 'photo'] as const) {
+      writeSave({ facing: 'north', closeup, progress: start().progress });
+      const r = loadSave();
+      expect(r.status === 'ok' && r.data.closeup).toBe(closeup);
+    }
   });
 
   it('上書きのたびに、ひとつ前の保存を予備に残す。本体が壊れたら予備から再開できる', () => {

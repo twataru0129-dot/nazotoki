@@ -4,17 +4,21 @@ import { CLOSEUP_TEXT } from '../game/text';
 import type { CloseupId } from '../game/types';
 import { BookshelfCloseup } from './closeups/BookshelfCloseup';
 import { ClockCloseup } from './closeups/ClockCloseup';
+import { BoxCloseup } from './closeups/BoxCloseup';
 import { DeskCloseup } from './closeups/DeskCloseup';
 import { DoorCloseup } from './closeups/DoorCloseup';
 import { InventoryBar } from './InventoryBar';
 import { SelectionChip } from './SelectionChip';
 import { PaintingsCloseup } from './closeups/PaintingsCloseup';
+import { PhotoCloseup } from './closeups/PhotoCloseup';
 import { WindowCloseup } from './closeups/WindowCloseup';
 
 const BODY: Record<CloseupId, ComponentType> = {
   bookshelf: BookshelfCloseup,
   paintings: PaintingsCloseup,
   desk: DeskCloseup,
+  box: BoxCloseup,
+  photo: PhotoCloseup,
   clock: ClockCloseup,
   door: DoorCloseup,
   window: WindowCloseup,
@@ -45,9 +49,6 @@ export function CloseupView({ id }: { id: CloseupId }) {
           <span aria-hidden="true">←</span> 戻る
         </button>
         <h2>{text.title}</h2>
-        <button type="button" className="ghost-btn" onClick={() => dispatch({ type: 'openOverlay', id: 'hints' })}>
-          ヒント
-        </button>
       </header>
       <div className="closeup-body">
         <Body />
@@ -58,8 +59,9 @@ export function CloseupView({ id }: { id: CloseupId }) {
         <p className="monologue" aria-live="polite" data-testid="closeup-monologue">
           {state.monologue ?? '\u00a0'}
         </p>
-        {id === 'desk' && <InventoryBar />}
-        {id !== 'desk' && id !== 'door' && <SelectionChip />}
+        {/* 鍵を選んで木箱に使うため、小箱の画面だけ持ち物の列を出す（扉は画面内に持ち物がある） */}
+        {id === 'box' && <InventoryBar />}
+        {id !== 'box' && id !== 'door' && <SelectionChip />}
       </footer>
     </section>
   );

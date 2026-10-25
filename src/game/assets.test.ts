@@ -3,8 +3,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import manifest from '../data/audio_manifest.json';
 import { SOUNDS } from './audioRegistry';
-import { HINTS, LETTER_LINES } from './text';
-import { PUZZLES } from './types';
+import { LETTER_LINES } from './text';
 
 const pub = (p: string) => path.resolve(__dirname, '../../public/assets', p);
 
@@ -40,10 +39,6 @@ describe('音声（audio_manifest.json が正本）', () => {
 });
 
 describe('文言とフォント', () => {
-  it('ヒントは5問×3段階＝15本', () => {
-    expect(PUZZLES.flatMap((p) => HINTS[p])).toHaveLength(15);
-  });
-
   it('手紙の確定文面', () => {
     expect(LETTER_LINES.at(-1)).toBe('この部屋には、一つだけ嘘がある。');
   });

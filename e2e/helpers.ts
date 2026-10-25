@@ -58,9 +58,11 @@ export const SOLVERS: Record<string, (page: Page) => Promise<void>> = {
     await back(page);
   },
   C: async (page) => {
-    await open(page, 'north', 'desk');
+    await open(page, 'north', 'drawer-right');
     await page.locator('[data-drawer="right"]').click();
     await page.getByRole('button', { name: '小さな鍵を取る' }).click();
+    await back(page);
+    await open(page, 'north', 'box');
     await page.locator('.inv-bar').getByRole('button', { name: '小さな鍵' }).click();
     await page.getByTestId('desk-box').click();
     await page.getByRole('button', { name: '記録カードCを取る' }).click();

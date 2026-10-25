@@ -1,9 +1,9 @@
-import { useRef, useState, type CSSProperties, type PointerEvent } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { assetUrl } from '../game/assets';
-import { rectToPercent } from '../game/geometry';
+import { rectToPercent, tapRects } from '../game/geometry';
 import { OVERLAYS, SCENES } from '../game/scenes';
 import { useGame } from '../game/store';
-import { FACING_LABEL, type Hotspot, type Rect } from '../game/types';
+import { FACING_LABEL, SCENE_W, type Hotspot, type Rect } from '../game/types';
 import { ClockFace } from './art/ClockFace';
 import { DoorDevice } from './art/DoorDevice';
 import { NorthDecor } from './SceneDecor';
@@ -16,16 +16,6 @@ function place(r: Rect): CSSProperties {
   return { left: `${p.left}%`, top: `${p.top}%`, width: `${p.width}%`, height: `${p.height}%` };
 }
 
-/** ホットスポットは中心と大きさを背景比率で置き、最小44pxのタップ領域を確保する（中心は動かない） */
-function hotspotStyle(r: Rect): CSSProperties {
-  const p = rectToPercent(r);
-  return {
-    left: `${p.left + p.width / 2}%`,
-    top: `${p.top + p.height / 2}%`,
-    width: `max(44px, ${p.width}%)`,
-    height: `max(44px, ${p.height}%)`,
-  };
-}
 
 export function SceneStage({ highlight }: { highlight: boolean }) {
   const { state, dispatch } = useGame();
@@ -37,6 +27,20 @@ export function SceneStage({ highlight }: { highlight: boolean }) {
   const start = useRef<{ x: number; y: number; id: number } | null>(null);
   const swiped = useRef(false);
   const [dragDx, setDragDx] = useState(0);
+  // ステージの表示幅（画面サイズ・向き・ブラウザの拡大率が変わるたびに測り直す）
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [stageW, setStageW] = useState(0);
+  useLayoutEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const measure = () => setStageW(el.getBoundingClientRect().width);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  // タップ領域：小さな物は最小44pxまで広げ、隣と重なる部分は隙間の中央で切る（背景に対する位置は画面サイズで変わらない）
+  const spots = useMemo(() => tapRects(scene.hotspots.map((h) => h.rect), stageW / SCENE_W), [scene, stageW]);
 
   const onPointerDown = (e: PointerEvent) => {
     if (!e.isPrimary) return;
@@ -74,6 +78,7 @@ export function SceneStage({ highlight }: { highlight: boolean }) {
   return (
     <div className="stage-box">
       <div
+        ref={stageRef}
         className="stage"
         data-testid="stage"
         data-facing={state.facing}
@@ -127,12 +132,12 @@ export function SceneStage({ highlight }: { highlight: boolean }) {
           )}
           {/* 解錠の直後だけ：閉じた扉が開いた扉へ移る（同じベース画像なので扉だけが動いて見える） */}
           {southOpen && !state.closeup && <DoorOpening />}
-          {scene.hotspots.map((h) => (
+          {scene.hotspots.map((h, i) => (
             <button
               key={h.id}
               type="button"
               className={`hotspot${h.action.type === 'examine' ? ' is-subtle' : highlight ? ' is-highlight' : ''}`}
-              style={hotspotStyle(h.rect)}
+              style={place(spots[i])}
               data-hotspot={h.id}
               aria-label={h.label}
               onClick={() => activate(h)}

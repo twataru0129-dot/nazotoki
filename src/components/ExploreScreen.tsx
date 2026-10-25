@@ -45,7 +45,7 @@ export function ExploreScreen() {
     timer.current = window.setTimeout(() => setHighlight(false), HIGHLIGHT_MS);
   };
 
-  const menu = (id: 'inventory' | 'notebook' | 'hints' | 'settings') => () => {
+  const menu = (id: 'inventory' | 'notebook' | 'settings') => () => {
     audio.unlock();
     if (id === 'notebook') audio.playSfx('paper_turn', 400);
     dispatch({ type: 'openOverlay', id });
@@ -103,7 +103,6 @@ export function ExploreScreen() {
       <nav className="menu-row" aria-label="メニュー">
         <button type="button" onClick={menu('inventory')}>持ち物</button>
         <button type="button" onClick={menu('notebook')}>手帳</button>
-        <button type="button" onClick={menu('hints')}>ヒント</button>
         <button type="button" onClick={menu('settings')}>設定</button>
       </nav>
       </div>

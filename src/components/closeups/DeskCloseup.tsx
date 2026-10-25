@@ -1,73 +1,60 @@
+import { useId } from 'react';
 import { DRAWERS, type DrawerId } from '../../game/logic';
-import { cardRevealed } from '../../game/state';
 import { useGame } from '../../game/store';
 import { useFreshFx, useFreshFxSuffix } from '../../game/useFreshFx';
 import { DRAWER_LABELS } from '../../game/text';
-import { CardFront } from '../art/CardFace';
 import { KeyIcon } from '../art/KeyIcon';
-import { OldPhoto } from '../art/OldPhoto';
 import { Examine } from '../Examine';
 
 const POS: Record<DrawerId, string> = { left: '左', middle: '中央', right: '右' };
 
-function BoxArt({ open }: { open: boolean }) {
+/** 札の文言を「鍵は／中央に（は）／ある・ない」の文節に分ける。狭い画面でも文節の途中では改行しない（文言は変えない） */
+function phrases(text: string): string[] {
+  const m = text.match(/^(鍵は)(.*?に(?:は)?)(.*)$/);
+  return m ? m.slice(1) : [text];
+}
+
+/** 真鍮の吊り手（バイルハンドル）。左右の座金から弓形の取っ手が下がる */
+function DrawerPull() {
+  const g = `pull-${useId().replace(/:/g, '')}`;
   return (
-    <svg viewBox="0 0 120 80" aria-hidden="true">
-      <rect x="8" y="30" width="104" height="44" rx="4" fill="#5a3b22" stroke="#B99A60" strokeWidth="3" />
-      {open ? (
-        <rect x="6" y="6" width="108" height="14" rx="4" fill="#6d4729" stroke="#B99A60" strokeWidth="3" transform="rotate(-14 10 24)" />
-      ) : (
-        <rect x="4" y="18" width="112" height="16" rx="4" fill="#6d4729" stroke="#B99A60" strokeWidth="3" />
-      )}
-      <rect x="52" y="40" width="16" height="20" rx="3" fill="#B99A60" />
-      <circle cx="60" cy="47" r="3" fill="#2b1d12" />
-      <rect x="58.5" y="48" width="3" height="7" fill="#2b1d12" />
+    <svg className="drawer-pull" viewBox="0 0 96 40" aria-hidden="true">
+      <defs>
+        <linearGradient id={g} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#f3dca0" />
+          <stop offset=".5" stopColor="#c09550" />
+          <stop offset="1" stopColor="#6e4e22" />
+        </linearGradient>
+      </defs>
+      {/* 座金 */}
+      <ellipse cx="14" cy="10" rx="11" ry="8" fill={`url(#${g})`} stroke="#5a3d17" strokeWidth="1.2" />
+      <ellipse cx="82" cy="10" rx="11" ry="8" fill={`url(#${g})`} stroke="#5a3d17" strokeWidth="1.2" />
+      <circle cx="14" cy="10" r="2.4" fill="#4a3114" />
+      <circle cx="82" cy="10" r="2.4" fill="#4a3114" />
+      {/* 弓形の取っ手（影→本体） */}
+      <path d="M14 13 Q48 44 82 13" fill="none" stroke="#1a0f06" strokeWidth="6" strokeLinecap="round" opacity=".55" transform="translate(0 2)" />
+      <path d="M14 13 Q48 44 82 13" fill="none" stroke={`url(#${g})`} strokeWidth="5" strokeLinecap="round" />
     </svg>
   );
 }
 
+// 机の前面：3つの引き出しを左・中央・右に横並びで置く（背景の机と同じ並び）。
+// 札の文言・正解（右）・鍵・「II」の刻印は従来どおり。机上の小箱と写真は別の拡大画面（BoxCloseup・PhotoCloseup）。
 export function DeskCloseup() {
   const { state, dispatch } = useGame();
-  const p = state.progress;
-  const { rightOpen, key, boxOpen } = p.desk;
+  const { rightOpen, key } = state.progress.desk;
   const shake = useFreshFxSuffix('drawer-locked-');
   const drawerAnim = useFreshFx('drawer-open', 'desk-drawer');
-  const boxAnim = useFreshFx('box-open', 'desk-box');
-  const keySelected = state.selected?.kind === 'key';
 
   return (
     <>
-      <div className="desk">
-        <div className={`desk-box${boxOpen ? ' is-open' : ''}${keySelected ? ' is-target' : ''}${boxAnim ? ' animate-box' : ''}`}>
-          <button
-            type="button"
-            className="box-btn"
-            onClick={() => dispatch({ type: 'useKeyOnBox' })}
-            disabled={boxOpen}
-            aria-label={boxOpen ? '木箱（開いている）' : keySelected ? '木箱に鍵を使う' : '木箱（鍵穴がある）'}
-            data-testid="desk-box"
-          >
-            <BoxArt open={boxOpen} />
-            <span>{boxOpen ? '木箱（開いた）' : keySelected ? '鍵を使う' : '木箱（鍵穴がある）'}</span>
-          </button>
-          {boxOpen &&
-            (cardRevealed(p, 'C') ? (
-              <button type="button" className="card-pick" onClick={() => dispatch({ type: 'takeCard', id: 'C' })} aria-label="記録カードCを取る">
-                <CardFront id="C" compact />
-                <span className="pick-label">取る</span>
-              </button>
-            ) : (
-              <span className="behind-empty">箱は空だ。</span>
-            ))}
-        </div>
-
-        <OldPhoto />
-
-        <ol className="drawers" aria-label="3つの引き出し">
+      <div className="desk-front">
+        <div className="desk-top-edge" aria-hidden="true" />
+        <ol className="drawers" aria-label="3つの引き出し（左から 左・中央・右）">
           {DRAWERS.map((d) => {
             const open = d === 'right' && rightOpen;
             return (
-              <li key={d} className={`drawer${open ? ' is-open' : ''}${open && drawerAnim ? ' animate-drawer' : ''}`}>
+              <li key={d} className={`drawer${open ? ' is-open' : ''}${open && drawerAnim ? ' animate-drawer' : ''}`} data-drawer-pos={d}>
                 <button
                   type="button"
                   className={`drawer-front${shake === d ? ' shake' : ''}`}
@@ -77,8 +64,16 @@ export function DeskCloseup() {
                   data-drawer={d}
                 >
                   <span className="drawer-pos">{POS[d]}</span>
-                  <span className="drawer-label">「{DRAWER_LABELS[d]}」</span>
-                  <span className="drawer-handle" aria-hidden="true" />
+                  <span className="label-plate">
+                    <span className="drawer-label">
+                      {phrases(DRAWER_LABELS[d]).map((w) => (
+                        <span key={w} className="phrase">
+                          {w}
+                        </span>
+                      ))}
+                    </span>
+                  </span>
+                  <DrawerPull />
                 </button>
                 {open && (
                   <div className="drawer-inside">
@@ -102,7 +97,6 @@ export function DeskCloseup() {
         </ol>
       </div>
       {!rightOpen && <p className="op-help">開けたい引き出しをタップする。開かない引き出しを選んでも何も失わない。</p>}
-      {key === 'inventory' && !keySelected && <p className="op-help">鍵を使うときは、下の持ち物から鍵を選んでから木箱をタップする。</p>}
     </>
   );
 }

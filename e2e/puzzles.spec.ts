@@ -53,9 +53,11 @@ test('2 絵画：A・B・Dは何も起きず、Cだけで額が開く', async ({
 
 test('3 机：左・中央は開かず、右→鍵→選んで木箱→カードC', async ({ page }) => {
   await newGame(page);
-  await open(page, 'north', 'desk');
+  await open(page, 'north', 'box');
   await page.getByTestId('desk-box').click();
   await expect(page.getByTestId('closeup-monologue')).toContainText('鍵がかかっている');
+  await back(page);
+  await open(page, 'north', 'drawer-left');
   for (const d of ['left', 'middle']) {
     await page.locator(`[data-drawer="${d}"]`).click();
     await expect(page.getByTestId('closeup-monologue')).toContainText('開かない');
@@ -63,7 +65,9 @@ test('3 机：左・中央は開かず、右→鍵→選んで木箱→カード
   await expect(page.getByRole('button', { name: '小さな鍵を取る' })).toHaveCount(0);
   await page.locator('[data-drawer="right"]').click();
   await page.getByRole('button', { name: '小さな鍵を取る' }).click();
+  await back(page);
   // 鍵を選ばずに木箱 → 開かない（取得と解錠は別操作）
+  await open(page, 'north', 'box');
   await page.getByTestId('desk-box').click();
   await expect(page.getByTestId('closeup-monologue')).toContainText('持ち物から鍵を選んで');
   await page.locator('.inv-bar').getByRole('button', { name: '小さな鍵' }).click();
@@ -158,13 +162,15 @@ test('8 扉：カード配置の途中で閉じて再開しても、配置とダ
 
 test('9 カード・鍵の二重取得はできない', async ({ page }) => {
   await newGame(page);
-  await open(page, 'north', 'desk');
+  await open(page, 'north', 'drawer-right');
   await page.locator('[data-drawer="right"]').click();
   const key = page.getByRole('button', { name: '小さな鍵を取る' });
   await key.dblclick();
-  await expect(page.locator('.inv-bar').getByRole('button', { name: '小さな鍵' })).toHaveCount(1);
   await page.locator('[data-drawer="right"]').click();
   await expect(key).toHaveCount(0);
+  await back(page);
+  await open(page, 'north', 'box');
+  await expect(page.locator('.inv-bar').getByRole('button', { name: '小さな鍵' })).toHaveCount(1);
   await page.locator('.inv-bar').getByRole('button', { name: '小さな鍵' }).click();
   await page.getByTestId('desk-box').click();
   await page.getByRole('button', { name: '記録カードCを取る' }).dblclick();
@@ -224,9 +230,11 @@ test('進行中の本の並びは再読み込み後も保たれる（操作途�
 
 test('持ち物を選んだまま向きを変え、解除できる', async ({ page }) => {
   await newGame(page);
-  await open(page, 'north', 'desk');
+  await open(page, 'north', 'drawer-right');
   await page.locator('[data-drawer="right"]').click();
   await page.getByRole('button', { name: '小さな鍵を取る' }).click();
+  await back(page);
+  await open(page, 'north', 'box');
   await page.locator('.inv-bar').getByRole('button', { name: '小さな鍵' }).click();
   await back(page);
   await expect(page.getByText('選択中：小さな鍵')).toBeVisible();

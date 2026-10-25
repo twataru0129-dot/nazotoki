@@ -1,13 +1,12 @@
 import { useCallback } from 'react';
 import { useGame } from '../game/store';
 import { Modal } from './Modal';
-import { HintsPanel } from './panels/HintsPanel';
 import { InventoryPanel } from './panels/InventoryPanel';
 import { LetterPanel } from './panels/LetterPanel';
 import { NotebookPanel } from './panels/NotebookPanel';
 import { SettingsPanel } from './panels/SettingsPanel';
 
-const TITLES = { inventory: '持ち物', notebook: '事件調査手帳', hints: 'ヒント', settings: '設定', letter: '城戸の手紙' } as const;
+const TITLES = { inventory: '持ち物', notebook: '事件調査手帳', settings: '設定', letter: '城戸の手紙' } as const;
 
 /** 重ねる画面は常に1つだけ（モーダルを積み重ねない） */
 export function OverlayHost() {
@@ -19,7 +18,6 @@ export function OverlayHost() {
     <Modal title={TITLES[id]} onClose={close} testId={`overlay-${id}`}>
       {id === 'inventory' && <InventoryPanel />}
       {id === 'notebook' && <NotebookPanel />}
-      {id === 'hints' && <HintsPanel />}
       {id === 'settings' && <SettingsPanel />}
       {id === 'letter' && <LetterPanel />}
     </Modal>

@@ -1,5 +1,5 @@
 import { DEFAULT_SETTINGS } from './settings';
-import { initialState, reducer, type GameState } from './state';
+import { initialProgress, initialState, reducer, type GameState } from './state';
 
 const explore = (): GameState => reducer(reducer(initialState(), { type: 'newGame' }), { type: 'enterStudy' });
 
@@ -35,7 +35,7 @@ describe('画面遷移', () => {
 
   it('重ねる画面は1つだけで、閉じると拡大画面に戻る', () => {
     let s = reducer(explore(), { type: 'openCloseup', id: 'clock' });
-    s = reducer(s, { type: 'openOverlay', id: 'hints' });
+    s = reducer(s, { type: 'openOverlay', id: 'notebook' });
     s = reducer(s, { type: 'openOverlay', id: 'settings' });
     expect(s.overlay).toBe('settings');
     s = reducer(s, { type: 'closeOverlay' });
@@ -43,19 +43,16 @@ describe('画面遷移', () => {
     expect(s.closeup).toBe('clock');
   });
 
-  it('ヒントは1段階ずつ、最大3段階（進行データに含む）', () => {
-    let s = explore();
-    for (let i = 0; i < 5; i++) s = reducer(s, { type: 'revealHint', puzzle: 'clock' });
-    expect(s.progress.hintLevels.clock).toBe(3);
-    expect(s.progress.hintLevels.books).toBe(0);
+  it('ヒント機能は廃止：進行データにヒントの記録を持たない', () => {
+    expect(Object.keys(explore().progress)).not.toContain('hintLevels');
   });
 
   it('はじめからは進行を初期化し、設定は保つ', () => {
-    let s = reducer(explore(), { type: 'revealHint', puzzle: 'door' });
+    let s = reducer(explore(), { type: 'swapBooks', i: 0, j: 1 });
     const muted = { ...DEFAULT_SETTINGS, muted: { bgm: true, ambient: false, sfx: false } };
     s = reducer(s, { type: 'setSettings', settings: muted });
     s = reducer(s, { type: 'newGame' });
-    expect(s.progress.hintLevels.door).toBe(0);
+    expect(s.progress.books.order).toEqual(initialProgress().books.order);
     expect(s.settings.muted.bgm).toBe(true);
   });
 });

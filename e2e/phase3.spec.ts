@@ -35,11 +35,13 @@ test('任意調査6件を見つけて手帳に記録できる（謎の後に出�
   await page.getByRole('button', { name: '手紙の裏の跡を調べる' }).click();
   await expect(page.getByTestId('overlay-letter')).toContainText('二本の線の跡');
   await closeModal(page);
-  // O1 写真の右端（机）。O4 は引き出しを開けるまで出ない
-  await open(page, 'north', 'desk');
-  await expect(page.locator('[data-optional="O4"]')).toHaveCount(0);
+  // O1 写真の右端（机上の写真の画面）。O4 は引き出しを開けるまで出ない
+  await open(page, 'north', 'photo');
   await page.getByRole('button', { name: '写真の右端を調べる' }).click();
   await expect(page.getByTestId('closeup-monologue')).toContainText('光沢が違う');
+  await back(page);
+  await open(page, 'north', 'drawer-right');
+  await expect(page.locator('[data-optional="O4"]')).toHaveCount(0);
   await page.locator('[data-drawer="right"]').click();
   await page.getByRole('button', { name: '引き出しの底を調べる' }).click();
   await expect(page.getByTestId('closeup-monologue')).toContainText('「II」');
@@ -91,33 +93,17 @@ test('2枚目の物音・4枚目の静寂は一度だけ。再読み込みして
   await page.getByRole('button', { name: '記録カードAを取る' }).click();
   await expect(page.getByTestId('closeup-monologue')).not.toContainText('コトッ');
   await back(page);
-  await open(page, 'north', 'desk');
+  await open(page, 'north', 'drawer-right');
   await page.locator('[data-drawer="right"]').click();
   await page.getByRole('button', { name: '小さな鍵を取る' }).click();
+  await back(page);
+  await open(page, 'north', 'box');
   await page.locator('.inv-bar').getByRole('button', { name: '小さな鍵' }).click();
   await page.getByTestId('desk-box').click();
   await page.getByRole('button', { name: '記録カードCを取る' }).click();
   await expect(page.getByTestId('closeup-monologue')).toContainText('雨の音が遠のいた');
   await expect(page.locator('.silence-veil')).toHaveCount(1);
   expect((await saved(page)).progress.eventsSeen).toEqual(['knock', 'silence']);
-});
-
-test('ヒント画面の「次に何を調べる？」：取り忘れ・4枚後の扉を案内', async ({ page }) => {
-  await newGame(page);
-  await open(page, 'west', 'paintings');
-  await page.locator('[data-painting="C"]').click();
-  await back(page);
-  await page.getByRole('navigation', { name: 'メニュー' }).getByRole('button', { name: 'ヒント', exact: true }).click();
-  await page.getByRole('button', { name: /探索の手がかりを見る/ }).click();
-  await expect(page.getByTestId('guide')).toContainText('西の絵画の裏に、まだ取っていない記録がある。');
-  await closeModal(page);
-  await open(page, 'west', 'paintings');
-  await page.getByRole('button', { name: '記録カードBを取る' }).click();
-  await back(page);
-  for (const id of ['A', 'C', 'D']) await SOLVERS[id](page);
-  await page.getByRole('navigation', { name: 'メニュー' }).getByRole('button', { name: 'ヒント', exact: true }).click();
-  await page.getByRole('button', { name: /探索の手がかりを見る/ }).click();
-  await expect(page.getByTestId('guide')).toContainText('4枚の記録がそろった。南の扉の装置を調べよう。');
 });
 
 test('プレイ時間：表示中だけ数え、扉の解錠でクリア時間を固定する', async ({ page }) => {
@@ -233,5 +219,45 @@ test('旧い版（v1）の保存データを移行して再開できる', async 
   await expect(page.getByText('記録カード　1 / 4')).toBeVisible();
   await closeModal(page);
   await face(page, 'north');
-  expect((await saved(page)).saveVersion).toBe(3);
+  const after = await saved(page);
+  expect(after.saveVersion).toBe(4);
+  expect(Object.keys(after.progress)).not.toContain('hintLevels');
+});
+
+test('ヒント廃止前（v3）の保存データ：ヒントを開いていても、引き出しの画面を開いたままでも再開できる', async ({ page: first, context }) => {
+  // 実際に遊んだ状態（本棚・絵画を解き、右の引き出しを開けて鍵を取った）を作り、v3 の形（hintLevels あり）に書き換える
+  await newGame(first);
+  for (const id of ['A', 'B']) await SOLVERS[id](first);
+  await open(first, 'north', 'drawer-right');
+  await first.locator('[data-drawer="right"]').click();
+  await first.getByRole('button', { name: '小さな鍵を取る' }).click();
+  const v3 = await first.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('study0017.ch1.save')!);
+    s.saveVersion = 3;
+    s.progress.hintLevels = { books: 3, paintings: 2, desk: 1, clock: 0, door: 0 };
+    return JSON.stringify(s);
+  });
+  // 閉じるときの自動保存が済んでから、v3 の保存を置いた状態で開き直す
+  await first.close();
+  const page = await context.newPage();
+  await page.addInitScript((data) => {
+    if (!sessionStorage.getItem('seeded')) {
+      localStorage.setItem('study0017.ch1.save', data);
+      sessionStorage.setItem('seeded', '1');
+    }
+  }, v3);
+  await page.goto('./');
+  await expect(page.getByText('以前の版の保存データを読み込みました。')).toBeVisible();
+  await page.getByRole('button', { name: 'つづきから' }).click();
+  await expect(page.getByTestId('closeup-desk')).toBeVisible();
+  await expect(page.locator('[data-drawer="right"]')).toHaveAccessibleName(/開いている/);
+  await back(page);
+  await open(page, 'north', 'box');
+  await page.locator('.inv-bar').getByRole('button', { name: '小さな鍵' }).click();
+  await page.getByTestId('desk-box').click();
+  await page.getByRole('button', { name: '記録カードCを取る' }).click();
+  const after = await saved(page);
+  expect(after.saveVersion).toBe(4);
+  expect(Object.keys(after.progress)).not.toContain('hintLevels');
+  expect(after.progress.acquired).toEqual(['A', 'B', 'C']);
 });

@@ -107,7 +107,7 @@ test('1・2・3・4・5 扉の正解からエンディング、クリア画面�
   await expect(clear).toBeVisible();
   await expect(clear).toContainText('第1章クリア');
   await expect(clear).toContainText('解決した謎5 / 5');
-  await expect(page.getByTestId('clear-hints')).toHaveText('0 / 15');
+  await expect(clear).not.toContainText('ヒント');
   await expect(page.getByTestId('clear-notes')).toHaveText('0 / 6');
   const p = (await saved(page)).progress;
   expect(p).toMatchObject({ ending: 'done', chapterCompleted: true, revisiting: false, clearSeconds: clearAtUnlock });

@@ -18,7 +18,7 @@ import {
 } from './logic';
 import { OPTIONALS, optionalAvailable } from './optional';
 import { DEFAULT_SETTINGS, type Settings } from './settings';
-import { FACINGS, PUZZLES, type CloseupId, type Facing, type OverlayId, type PuzzleId, type Screen } from './types';
+import { FACINGS, type CloseupId, type Facing, type OverlayId, type Screen } from './types';
 
 // ---------- 進行データ（オートセーブの対象） ----------
 
@@ -37,7 +37,6 @@ export interface Progress {
   /** カードの配置は cards 側だけで持つ（枠の中身は doorSlots() で導出） */
   door: { dialMinute: number; unlocked: boolean };
   cards: Record<CardId, CardLocation>;
-  hintLevels: Record<PuzzleId, 0 | 1 | 2 | 3>;
   /** 発見した任意調査（発見順） */
   optionalNotes: OptionalId[];
   /** 一度きりのイベント（'knock' = 2枚目の物音、'silence' = 4枚目の静寂） */
@@ -70,7 +69,6 @@ export function initialProgress(): Progress {
     clock: { minutes: CLOCK_STOPPED, solved: false, compartmentOpen: false, handsReturned: false },
     door: { dialMinute: CLOCK_STOPPED, unlocked: false },
     cards: { A: { at: 'unfound' }, B: { at: 'unfound' }, C: { at: 'unfound' }, D: { at: 'unfound' } },
-    hintLevels: Object.fromEntries(PUZZLES.map((p) => [p, 0])) as Progress['hintLevels'],
     optionalNotes: [],
     eventsSeen: [],
     acquired: [],
@@ -163,7 +161,6 @@ export type Action =
   | { type: 'closeOverlay' }
   | { type: 'say'; text: string }
   | { type: 'clearSay' }
-  | { type: 'revealHint'; puzzle: PuzzleId }
   | { type: 'setSettings'; settings: Settings }
   | { type: 'select'; item: Selection }
   // 謎の操作
@@ -280,11 +277,6 @@ export function reducer(state: GameState, action: Action): GameState {
       return { ...state, monologue: action.text };
     case 'clearSay':
       return { ...state, monologue: null };
-    case 'revealHint': {
-      const cur = p.hintLevels[action.puzzle];
-      if (cur >= 3) return state;
-      return withProgress(state, { ...p, hintLevels: { ...p.hintLevels, [action.puzzle]: (cur + 1) as 1 | 2 | 3 } });
-    }
     case 'setSettings':
       return { ...state, settings: action.settings };
     case 'select': {

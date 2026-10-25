@@ -19,6 +19,7 @@ npm run test:e2e     # Playwright（ビルド済み dist を vite preview で検
   背景の加工内容と画質は `docs/asset_build_report.md` に出力される。
 - 音声20ファイルは再エンコードせず、タグ（作成者名・生成IDなどのメタデータ）だけを外して配置。元ファイルは元素材側で保持。
 - フォントは Noto Serif JP（SIL OFL 1.1、`public/assets/fonts/OFL.txt`）。
+- 机上の古い写真（ユーザー提供）は `node scripts/build-photo.mjs <提供画像>` で `public/assets/photo/old_photo.webp` を作る。
 - 素材の出自・利用条件・未完成の部分は `ASSET_PROVENANCE.md`。
 
 ## 公開（GitHub Pages）

@@ -1544,7 +1544,8 @@ summary:focus-visible {
 }
 
 .photo-closeup .old-photo {
-  width: min(100%, 440px);
+  /* 横長の写真（802×540）。横向きのスマホでも画面の高さに収まる幅にする（引き伸ばさない） */
+  width: min(100%, 520px, calc(62dvh * 802 / 540));
 }
 
 
@@ -1875,17 +1876,21 @@ summary:focus-visible {
 .photo-main {
   display: block;
   width: 100%;
-  padding: 0;
+  /* 台紙（クリーム色の縁） */
+  padding: 3.5%;
   border: 0;
-  background: none;
+  background: linear-gradient(135deg, #f1e7cf, #e2d3b0);
   cursor: pointer;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6);
   transform: rotate(-2deg);
 }
 
-.photo-main svg {
+.photo-main img {
   display: block;
   width: 100%;
+  height: auto;
+  aspect-ratio: 802 / 540;
+  object-fit: contain;
 }
 
 .photo-edge {

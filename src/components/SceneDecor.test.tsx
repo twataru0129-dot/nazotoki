@@ -6,17 +6,21 @@ import { NorthDecor, RoomView } from './SceneDecor';
 const wrap = (ui: ReactElement) => render(<GameProvider>{ui}</GameProvider>);
 
 describe('書斎A／Bの描き分け（伏線の維持）', () => {
-  it('書斎Aには赤い本がなく、写真は1人', () => {
+  it('書斎Aには赤い本がなく、写真は提供写真のまま（もう1人はいない）', () => {
     const { container } = wrap(<NorthDecor room="A" />);
     expect(container.querySelectorAll('[data-scene-book="red"]')).toHaveLength(0);
     expect(container.querySelectorAll('[data-scene-book]')).toHaveLength(4);
-    expect(container.querySelector('[data-photo="A"]')?.querySelectorAll('circle')).toHaveLength(1);
+    const photo = container.querySelector('[data-photo="A"]');
+    expect(photo?.querySelector('image')?.getAttribute('href')).toContain('photo/old_photo.webp');
+    expect(photo?.querySelector('[data-extra-person]')).toBeNull();
   });
 
   it('書斎Bには赤い本があり、写真には別の人物も写る（2人）', () => {
     const { container } = wrap(<NorthDecor room="B" />);
     expect(container.querySelectorAll('[data-scene-book="red"]')).toHaveLength(1);
-    expect(container.querySelector('[data-photo="B"]')?.querySelectorAll('circle')).toHaveLength(2);
+    const photo = container.querySelector('[data-photo="B"]');
+    expect(photo?.querySelector('image')?.getAttribute('href')).toContain('photo/old_photo.webp');
+    expect(photo?.querySelector('[data-extra-person]')).not.toBeNull();
     expect(container.querySelector('[data-photo="A"]')).toBeNull();
   });
 
